@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="refresh" content="60">
+<title>코스피 실시간 뉴스 모니터</title>
+<style>
+  body { font-family: 'Malgun Gothic', sans-serif; background: #f4f6f9;
+         margin: 0; padding: 24px; color: #222; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .meta { color: #667; font-size: 13px; margin-bottom: 16px; }
+  .warn { background: #fff3cd; border: 1px solid #ffe08a; border-radius: 6px;
+           padding: 10px 14px; font-size: 13px; margin-bottom: 20px; }
+  h2 { font-size: 17px; margin: 28px 0 10px; }
+  table { border-collapse: collapse; width: 100%; background: #fff;
+           box-shadow: 0 1px 3px rgba(0,0,0,.08); font-size: 14px; }
+  th, td { padding: 8px 12px; border-bottom: 1px solid #e8ecf1; text-align: right; }
+  th { background: #2c3e50; color: #fff; font-weight: 600; }
+  td.name, th.name { text-align: left; }
+  tr:hover td { background: #f0f6ff; }
+  .up { color: #d32f2f; font-weight: 600; }
+  .down { color: #1565c0; font-weight: 600; }
+  .alert { background: #fff; border-left: 4px solid #d32f2f; margin: 6px 0;
+            padding: 8px 12px; font-size: 14px; box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+  .alert.neg { border-left-color: #1565c0; }
+  .kw { color: #888; font-size: 12px; }
+  .time { color: #999; font-size: 12px; margin-right: 8px; }
+  .table-wrap { overflow-x: auto; }
+  @media (max-width: 600px) {
+    body { padding: 12px; }
+    h1 { font-size: 18px; }
+    th, td { padding: 6px 8px; font-size: 13px; white-space: nowrap; }
+    .alert { font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+<h1>📈 코스피 실시간 뉴스 모니터 <span style="font-size:14px;color:#888">시가총액 상위 100종목</span></h1>
+<div class="meta">마지막 갱신: 2026-08-05 15:52:59 · 당일 게재 뉴스만 집계 (누적 568건, 제목에 종목명 포함 기사만 반영) · 60초마다 자동 새로고침</div>
+<div class="warn">⚠️ 뉴스 키워드 기반 자동 분석 결과이며 투자 판단의 근거가 아닙니다. 투자 결정과 결과의 책임은 본인에게 있습니다.</div>
+
+<h2>🏆 다음 거래일 상승 후보 순위</h2>
+<div class="table-wrap">
+<table>
+<tr><th>순위</th><th class="name">종목명</th><th>코드</th><th>현재가</th>
+<th>등락률</th><th>뉴스점수</th><th>최종점수</th></tr>
+<tr><td>1</td><td class='name'>카카오뱅크</td><td>323410</td><td>21,550</td><td class='down'>-1.37%</td><td>15</td><td><b>14.59</b></td></tr>
+<tr><td>2</td><td class='name'>에이피알</td><td>278470</td><td>357,500</td><td class='down'>-0.56%</td><td>12</td><td><b>11.83</b></td></tr>
+<tr><td>3</td><td class='name'>대우건설</td><td>047040</td><td>16,230</td><td class='up'>+6.78%</td><td>7</td><td><b>9.03</b></td></tr>
+<tr><td>4</td><td class='name'>삼성전기</td><td>009150</td><td>1,356,000</td><td class='up'>+14.43%</td><td>4</td><td><b>8.33</b></td></tr>
+<tr><td>5</td><td class='name'>SK바이오팜</td><td>326030</td><td>82,000</td><td class='up'>+2.76%</td><td>6</td><td><b>6.83</b></td></tr>
+<tr><td>6</td><td class='name'>LG전자</td><td>066570</td><td>179,500</td><td class='up'>+8.46%</td><td>4</td><td><b>6.54</b></td></tr>
+<tr><td>7</td><td class='name'>LG이노텍</td><td>011070</td><td>601,000</td><td class='up'>+14.48%</td><td>2</td><td><b>6.34</b></td></tr>
+<tr><td>8</td><td class='name'>현대건설</td><td>000720</td><td>110,100</td><td class='up'>+8.47%</td><td>3</td><td><b>5.54</b></td></tr>
+<tr><td>9</td><td class='name'>HD현대일렉트릭</td><td>267260</td><td>772,000</td><td class='up'>+7.82%</td><td>3</td><td><b>5.35</b></td></tr>
+<tr><td>10</td><td class='name'>삼성물산</td><td>028260</td><td>347,500</td><td class='up'>+7.75%</td><td>3</td><td><b>5.32</b></td></tr>
+</table>
+</div>
+
+<h2>🔔 실시간 뉴스 알림 (최신순)</h2>
+<div class='alert'><span class='time'>2026.08.05 15:51</span>🔺 <b>카카오뱅크</b> [+2] 카카오뱅크, 상반기 순익 3280억 '역대 최대'…"캐피탈, 자산 1조... <span class='kw'>(같은 내용 외 23건)</span> <span class='kw'>[역대 최대]</span></div>
+<div class='alert'><span class='time'>2026.08.05 15:46</span>🔺 <b>삼양식품</b> [+2] 투썸, 삼양식품 '불닭'과 협업 강화?델리 신제품 2종 출시 <span class='kw'>[신제품, 출시]</span></div>
+<div class='alert'><span class='time'>2026.08.05 15:39</span>🔺 <b>에이피알</b> [+2] 에이피알, 2Q 영업익 1906억?"사상 최대 실적" <span class='kw'>(같은 내용 외 4건)</span> <span class='kw'>[사상 최대]</span></div>
+<div class='alert'><span class='time'>2026.08.05 15:39</span>🔺 <b>SK바이오팜</b> [+2] SK바이오팜, 2분기 영업이익 971억?"역대 최대" <span class='kw'>(같은 내용 외 1건)</span> <span class='kw'>[역대 최대]</span></div>
+<div class='alert'><span class='time'>2026.08.05 15:14</span>🔺 <b>미래에셋증권</b> [+2] "급등락장 심리적 동요 줄여줘"…미래에셋증권, 퇴직연금 로보랩 출시 <span class='kw'>[급등, 출시]</span></div>
+<div class='alert'><span class='time'>2026.08.05 12:43</span>🔺 <b>대우건설</b> [+2] “대우건설, 하반기 실적 개선 이뤄낼 것… 베트남 사업 매출 증가” <span class='kw'>[실적 개선, 매출 증가]</span></div>
+<div class='alert'><span class='time'>2026.08.05 11:53</span>🔺 <b>카카오뱅크</b> [+3] 카뱅, 반기 순익 '역대 최대'…"연내 캐피탈사 출자 승인 추진"(종... <span class='kw'>(같은 내용 외 1건)</span> <span class='kw'>[역대 최대, 승인]</span></div>
+<div class='alert'><span class='time'>2026.08.05 11:48</span>🔺 <b>카카오뱅크</b> [+2] 카카오뱅크, 상반기 순이익 3280억 ‘역대최대 실적’ <span class='kw'>(같은 내용 외 3건)</span> <span class='kw'>[역대최대]</span></div>
+<div class='alert neg'><span class='time'>2026.08.05 11:33</span>🔻 <b>삼성전자</b> [-2] 삼전닉스 성과급, 다시 안갯속…'배임 고발' 경찰 수사 착수 <span class='kw'>[배임]</span></div>
+<div class='alert'><span class='time'>2026.08.05 11:10</span>🔺 <b>삼성증권</b> [+2] 발행어음 초읽기 삼성증권, 2분기 실적도 '사상 최대' <span class='kw'>[사상 최대]</span></div>
+<div class='alert'><span class='time'>2026.08.05 10:59</span>🔺 <b>에이피알</b> [+2] 에이피알, 2분기 영업익 1906억원 역대 최대…전년比 134.5%↑ <span class='kw'>(같은 내용 외 1건)</span> <span class='kw'>[역대 최대]</span></div>
+<div class='alert neg'><span class='time'>2026.08.05 10:53</span>🔻 <b>SK</b> [-2] “성과급 합의가 배임”…경찰, 삼성·SK 대표 고발 사건 수사 착수 <span class='kw'>(같은 내용 외 1건)</span> <span class='kw'>[배임]</span></div>
+<div class='alert'><span class='time'>2026.08.05 10:38</span>🔺 <b>SK바이오팜</b> [+2] 세노바메이트 美 매출 45.6%↑…SK바이오팜, 사상 최대 실적 경신 <span class='kw'>[사상 최대]</span></div>
+<div class='alert'><span class='time'>2026.08.05 10:09</span>🔺 <b>LG전자</b> [+2] LG전자 로봇청소기 ‘로니’ 초기 판매량 역대 최대… 강남·판교·인..... <span class='kw'>[역대 최대]</span></div>
+<div class='alert'><span class='time'>2026.08.05 09:11</span>🔺 <b>삼성전자우</b> [+2] AI 성장 모멘텀 회복에 삼전닉스 강세…삼성전기 13%대 급등 <span class='kw'>[급등, 강세]</span></div>
+<div class='alert'><span class='time'>2026.08.05 08:59</span>🔺 <b>카카오뱅크</b> [+2] 카카오뱅크, 상반기 순이익 3280억원…사상 최대실적 <span class='kw'>[사상 최대]</span></div>
+<div class='alert'><span class='time'>2026.08.05 08:59</span>🔺 <b>대우건설</b> [+2] "대우건설, 2분기 어닝 서프라이즈… 목표가 2만4000원"-다올 <span class='kw'>[어닝 서프라이즈]</span></div>
+<div class='alert'><span class='time'>2026.08.05 05:00</span>🔺 <b>HD현대일렉트릭</b> [+3] HD현대일렉트릭, 북미 수주 '사상 최대'…"AI發 수요 선점 지속" <span class='kw'>[사상 최대, 수주]</span></div>
+</body>
+</html>
