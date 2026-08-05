@@ -3,7 +3,6 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="refresh" content="60">
 <title>코스피 실시간 뉴스 모니터</title>
 <style>
   body { font-family: 'Malgun Gothic', sans-serif; background: #f4f6f9;
@@ -27,6 +26,15 @@
   .kw { color: #888; font-size: 12px; }
   .time { color: #999; font-size: 12px; margin-right: 8px; }
   .table-wrap { overflow-x: auto; }
+  a { color: #1565c0; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  tr.mrow { cursor: pointer; }
+  .arr { color: #aab; font-size: 11px; }
+  tr.drow { display: none; background: #f8fafc; }
+  tr.drow td { text-align: left; white-space: normal; }
+  .dbox { padding: 4px 6px; }
+  .dline { padding: 3px 0; font-size: 13px; }
+  .naver { display: inline-block; margin-bottom: 6px; font-size: 13px; font-weight: 600; }
   @media (max-width: 600px) {
     body { padding: 12px; }
     h1 { font-size: 18px; }
@@ -37,7 +45,7 @@
 </head>
 <body>
 <h1>📈 코스피 실시간 뉴스 모니터 <span style="font-size:14px;color:#888">시가총액 상위 100종목</span></h1>
-<div class="meta">마지막 갱신: 2026-08-05 17:08:01 · 당일 게재 뉴스만 집계 (누적 676건, 제목에 종목명 포함 기사만 반영) · 60초마다 자동 새로고침</div>
+<div class="meta">마지막 갱신: 2026-08-05 17:22:30 · 당일 게재 뉴스만 집계 (누적 532건, 제목에 종목명 포함 기사만 반영) · 60초마다 자동 새로고침 (종목 상세가 열려 있는 동안은 일시정지) · 종목을 클릭하면 근거 뉴스가 펼쳐집니다</div>
 <div class="warn">⚠️ 뉴스 키워드 기반 자동 분석 결과이며 투자 판단의 근거가 아닙니다. 투자 결정과 결과의 책임은 본인에게 있습니다.</div>
 
 <h2>🏆 다음 거래일 상승 후보 순위</h2>
@@ -45,41 +53,59 @@
 <table>
 <tr><th>순위</th><th class="name">종목명</th><th>코드</th><th>현재가</th>
 <th>등락률</th><th>뉴스점수</th><th>최종점수</th></tr>
-<tr><td>1</td><td class='name'>카카오뱅크</td><td>323410</td><td>21,550</td><td class='down'>-1.37%</td><td>15</td><td><b>14.59</b></td></tr>
-<tr><td>2</td><td class='name'>삼성전기</td><td>009150</td><td>1,356,000</td><td class='up'>+14.43%</td><td>9</td><td><b>13.33</b></td></tr>
-<tr><td>3</td><td class='name'>에이피알</td><td>278470</td><td>357,500</td><td class='down'>-0.56%</td><td>13</td><td><b>12.83</b></td></tr>
-<tr><td>4</td><td class='name'>대우건설</td><td>047040</td><td>16,230</td><td class='up'>+6.78%</td><td>7</td><td><b>9.03</b></td></tr>
-<tr><td>5</td><td class='name'>SK바이오팜</td><td>326030</td><td>82,000</td><td class='up'>+2.76%</td><td>6</td><td><b>6.83</b></td></tr>
-<tr><td>6</td><td class='name'>LG전자</td><td>066570</td><td>179,500</td><td class='up'>+8.46%</td><td>4</td><td><b>6.54</b></td></tr>
-<tr><td>7</td><td class='name'>LG이노텍</td><td>011070</td><td>601,000</td><td class='up'>+14.48%</td><td>2</td><td><b>6.34</b></td></tr>
-<tr><td>8</td><td class='name'>삼성전자우</td><td>005935</td><td>183,900</td><td class='up'>+4.25%</td><td>5</td><td><b>6.28</b></td></tr>
-<tr><td>9</td><td class='name'>현대건설</td><td>000720</td><td>110,100</td><td class='up'>+8.47%</td><td>3</td><td><b>5.54</b></td></tr>
-<tr><td>10</td><td class='name'>HD현대일렉트릭</td><td>267260</td><td>772,000</td><td class='up'>+7.82%</td><td>3</td><td><b>5.35</b></td></tr>
+<tr class='mrow' onclick="tg('d1')"><td>1</td><td class='name'>카카오뱅크 <span class='arr'>▾</span></td><td>323410</td><td>21,550</td><td class='down'>-1.37%</td><td>15</td><td><b>14.59</b></td></tr>
+<tr id='d1' class='drow'><td colspan='7'><div class='dbox'><a class='naver' href='https://finance.naver.com/item/main.naver?code=323410' target='_blank' rel='noopener'>📊 네이버 금융에서 카카오뱅크 상세보기 ↗</a><div class='dline'>🔺 <a href='https://finance.naver.com/item/news_read.naver?article_id=0000049553&office_id=648&code=323410&page=1&sm=' target='_blank' rel='noopener'>카카오뱅크, 상반기 순익 3280억 '역대 최대'…"캐피탈, 자산 1조...</a> <span class='kw'>(같은 내용 외 21건)</span> <span class='kw'>[역대 최대]</span></div><div class='dline'>🔺 <a href='https://finance.naver.com/item/news_read.naver?article_id=0005716773&office_id=009&code=323410&page=1&sm=' target='_blank' rel='noopener'>카카오뱅크, 상반기 순익 3280억원…비이자이익 날개 달고 역대최대 ...</a> <span class='kw'>(같은 내용 외 3건)</span> <span class='kw'>[역대최대]</span></div><div class='dline'>🔺 <a href='https://finance.naver.com/item/news_read.naver?article_id=0005317479&office_id=015&code=323410&page=1&sm=' target='_blank' rel='noopener'>카카오뱅크, 상반기 순이익 3280억원…사상 최대실적</a> <span class='kw'>[사상 최대]</span></div><div class='dline'>🔺 <a href='https://finance.naver.com/item/news_read.naver?article_id=0009098115&office_id=421&code=323410&page=2&sm=' target='_blank' rel='noopener'>카뱅, 반기 순익 '역대 최대'…"연내 캐피탈사 출자 승인 추진"(종합...</a> <span class='kw'>[역대 최대, 승인]</span></div></div></td></tr>
+<tr class='mrow' onclick="tg('d2')"><td>2</td><td class='name'>에이피알 <span class='arr'>▾</span></td><td>278470</td><td>357,500</td><td class='down'>-0.56%</td><td>13</td><td><b>12.83</b></td></tr>
+<tr id='d2' class='drow'><td colspan='7'><div class='dbox'><a class='naver' href='https://finance.naver.com/item/main.naver?code=278470' target='_blank' rel='noopener'>📊 네이버 금융에서 에이피알 상세보기 ↗</a><div class='dline'>🔺 <a href='https://finance.naver.com/item/news_read.naver?article_id=0006345271&office_id=018&code=278470&page=1&sm=' target='_blank' rel='noopener'>'3조 클럽' 예고한 에이피알…의료기기 신사업까지 확장(종합)</a> <span class='kw'>[신사업]</span></div><div class='dline'>🔺 <a href='https://finance.naver.com/item/news_read.naver?article_id=0003454358&office_id=030&code=278470&page=1&sm=' target='_blank' rel='noopener'>에이피알, 2분기 영업익 1906억원 역대 최대…전년比 134.5%↑</a> <span class='kw'>(같은 내용 외 1건)</span> <span class='kw'>[역대 최대]</span></div><div class='dline'>🔺 <a href='https://finance.naver.com/item/news_read.naver?article_id=0002679726&office_id=016&code=278470&page=1&sm=' target='_blank' rel='noopener'>에이피알, 2분기 영업익 1906억원 ‘사상 최대’…북미·유럽이 끌었...</a> <span class='kw'>(같은 내용 외 3건)</span> <span class='kw'>[사상 최대]</span></div><div class='dline'>🔺 <a href='https://finance.naver.com/item/news_read.naver?article_id=0006344894&office_id=018&code=278470&page=1&sm=' target='_blank' rel='noopener'>에이피알, 상반기 최대 실적 경신…'연매출 3조' 돌파 청신호</a> <span class='kw'>(같은 내용 외 1건)</span> <span class='kw'>[돌파]</span></div></div></td></tr>
+<tr class='mrow' onclick="tg('d3')"><td>3</td><td class='name'>대우건설 <span class='arr'>▾</span></td><td>047040</td><td>16,230</td><td class='up'>+6.78%</td><td>7</td><td><b>9.03</b></td></tr>
+<tr id='d3' class='drow'><td colspan='7'><div class='dbox'><a class='naver' href='https://finance.naver.com/item/main.naver?code=047040' target='_blank' rel='noopener'>📊 네이버 금융에서 대우건설 상세보기 ↗</a><div class='dline'>🔺 <a href='https://finance.naver.com/item/news_read.naver?article_id=0005317655&office_id=015&code=047040&page=1&sm=' target='_blank' rel='noopener'>대우건설 목표가 줄상향…"하반기 수주 모멘텀"</a> <span class='kw'>(같은 내용 외 7건)</span> <span class='kw'>[수주]</span></div><div class='dline'>🔺 <a href='https://finance.naver.com/item/news_read.naver?article_id=0000038622&office_id=037&code=047040&page=1&sm=' target='_blank' rel='noopener'>“대우건설, 하반기 실적 개선 이뤄낼 것… 베트남 사업 매출 증가”</a> <span class='kw'>[실적 개선, 매출 증가]</span></div><div class='dline'>🔺 <a href='https://finance.naver.com/item/news_read.naver?article_id=0005395777&office_id=008&code=047040&page=2&sm=' target='_blank' rel='noopener'>"대우건설, 2분기 어닝 서프라이즈… 목표가 2만4000원"-다올</a> <span class='kw'>[어닝 서프라이즈]</span></div><div class='dline'>🔺 <a href='https://finance.naver.com/item/news_read.naver?article_id=0006344740&office_id=018&code=047040&page=2&sm=' target='_blank' rel='noopener'>대우건설, 가파른 실적 개선세 지속 중…'매수'-IBK</a> <span class='kw'>[실적 개선]</span></div><div class='dline'>🔻 <a href='https://finance.naver.com/item/news_read.naver?article_id=0009097558&office_id=421&code=047040&page=2&sm=' target='_blank' rel='noopener'>하나證 "대우건설, 건축 실적 서프라이즈…원전 지연에 목표가는 59%↓...</a> <span class='kw'>[지연]</span></div></div></td></tr>
+<tr class='mrow' onclick="tg('d4')"><td>4</td><td class='name'>삼성전기 <span class='arr'>▾</span></td><td>009150</td><td>1,356,000</td><td class='up'>+14.43%</td><td>3</td><td><b>7.33</b></td></tr>
+<tr id='d4' class='drow'><td colspan='7'><div class='dbox'><a class='naver' href='https://finance.naver.com/item/main.naver?code=009150' target='_blank' rel='noopener'>📊 네이버 금융에서 삼성전기 상세보기 ↗</a><div class='dline'>🔺 <a href='https://finance.naver.com/item/news_read.naver?article_id=0009099115&office_id=421&code=009150&page=1&sm=' target='_blank' rel='noopener'>삼성전기·LG이노텍 동반 14% 급등…AI 부품 랠리 재시동[핫종목]</a> <span class='kw'>[급등]</span></div><div class='dline'>🔺 <a href='https://finance.naver.com/item/news_read.naver?article_id=0000946408&office_id=469&code=009150&page=1&sm=' target='_blank' rel='noopener'>삼성전기도 알테오젠도 '1주 상한가'… NXT 시초가 또 논란</a> <span class='kw'>[상한가]</span></div></div></td></tr>
+<tr class='mrow' onclick="tg('d5')"><td>5</td><td class='name'>SK바이오팜 <span class='arr'>▾</span></td><td>326030</td><td>82,000</td><td class='up'>+2.76%</td><td>6</td><td><b>6.83</b></td></tr>
+<tr id='d5' class='drow'><td colspan='7'><div class='dbox'><a class='naver' href='https://finance.naver.com/item/main.naver?code=326030' target='_blank' rel='noopener'>📊 네이버 금융에서 SK바이오팜 상세보기 ↗</a><div class='dline'>🔺 <a href='https://finance.naver.com/item/news_read.naver?article_id=0001047449&office_id=031&code=326030&page=1&sm=' target='_blank' rel='noopener'>SK바이오팜, 2분기 영업이익 971억?"역대 최대"</a> <span class='kw'>(같은 내용 외 1건)</span> <span class='kw'>[역대 최대]</span></div><div class='dline'>🔺 <a href='https://finance.naver.com/item/news_read.naver?article_id=0004648728&office_id=011&code=326030&page=1&sm=' target='_blank' rel='noopener'>세노바메이트 美 매출 45.6%↑…SK바이오팜, 사상 최대 실적 경신</a> <span class='kw'>[사상 최대]</span></div></div></td></tr>
+<tr class='mrow' onclick="tg('d6')"><td>6</td><td class='name'>LG전자 <span class='arr'>▾</span></td><td>066570</td><td>179,500</td><td class='up'>+8.46%</td><td>4</td><td><b>6.54</b></td></tr>
+<tr id='d6' class='drow'><td colspan='7'><div class='dbox'><a class='naver' href='https://finance.naver.com/item/main.naver?code=066570' target='_blank' rel='noopener'>📊 네이버 금융에서 LG전자 상세보기 ↗</a><div class='dline'>🔺 <a href='https://finance.naver.com/item/news_read.naver?article_id=0001184394&office_id=366&code=066570&page=2&sm=' target='_blank' rel='noopener'>LG전자 로봇청소기 ‘로니’ 초기 판매량 역대 최대… 강남·판교·인....</a> <span class='kw'>[역대 최대]</span></div><div class='dline'>🔺 <a href='https://finance.naver.com/item/news_read.naver?article_id=0016234293&office_id=001&code=066570&page=2&sm=' target='_blank' rel='noopener'>LG전자, 판교 현대백화점서 청소로봇 신제품 '로니' 팝업 행사</a> <span class='kw'>(같은 내용 외 1건)</span> <span class='kw'>[신제품]</span></div></div></td></tr>
+<tr class='mrow' onclick="tg('d7')"><td>7</td><td class='name'>LG이노텍 <span class='arr'>▾</span></td><td>011070</td><td>601,000</td><td class='up'>+14.48%</td><td>2</td><td><b>6.34</b></td></tr>
+<tr id='d7' class='drow'><td colspan='7'><div class='dbox'><a class='naver' href='https://finance.naver.com/item/main.naver?code=011070' target='_blank' rel='noopener'>📊 네이버 금융에서 LG이노텍 상세보기 ↗</a><div class='dline'>🔺 <a href='https://finance.naver.com/item/news_read.naver?article_id=0009099115&office_id=421&code=011070&page=1&sm=' target='_blank' rel='noopener'>삼성전기·LG이노텍 동반 14% 급등…AI 부품 랠리 재시동[핫종목]</a> <span class='kw'>(같은 내용 외 3건)</span> <span class='kw'>[급등]</span></div><div class='dline'>🔻 <a href='https://finance.naver.com/item/news_read.naver?article_id=0009097384&office_id=421&code=011070&page=2&sm=' target='_blank' rel='noopener'>美, 중국산 로봇 규제…LG이노텍·삼성전기 로봇 부품 날개 단다</a> <span class='kw'>[규제]</span></div></div></td></tr>
+<tr class='mrow' onclick="tg('d8')"><td>8</td><td class='name'>현대건설 <span class='arr'>▾</span></td><td>000720</td><td>110,100</td><td class='up'>+8.47%</td><td>3</td><td><b>5.54</b></td></tr>
+<tr id='d8' class='drow'><td colspan='7'><div class='dbox'><a class='naver' href='https://finance.naver.com/item/main.naver?code=000720' target='_blank' rel='noopener'>📊 네이버 금융에서 현대건설 상세보기 ↗</a><div class='dline'>🔺 <a href='https://finance.naver.com/item/news_read.naver?article_id=0004648787&office_id=011&code=000720&page=1&sm=' target='_blank' rel='noopener'>현대건설, 목동10단지 수주 출사표…글로벌 업체 2곳과 원팀 구성</a> <span class='kw'>(같은 내용 외 7건)</span> <span class='kw'>[수주]</span></div></div></td></tr>
+<tr class='mrow' onclick="tg('d9')"><td>9</td><td class='name'>HD현대일렉트릭 <span class='arr'>▾</span></td><td>267260</td><td>772,000</td><td class='up'>+7.82%</td><td>3</td><td><b>5.35</b></td></tr>
+<tr id='d9' class='drow'><td colspan='7'><div class='dbox'><a class='naver' href='https://finance.naver.com/item/main.naver?code=267260' target='_blank' rel='noopener'>📊 네이버 금융에서 HD현대일렉트릭 상세보기 ↗</a><div class='dline'>🔺 <a href='https://finance.naver.com/item/news_read.naver?article_id=0014108599&office_id=003&code=267260&page=1&sm=' target='_blank' rel='noopener'>HD현대일렉트릭, 북미 수주 '사상 최대'…"AI發 수요 선점 지속"</a> <span class='kw'>[사상 최대, 수주]</span></div></div></td></tr>
+<tr class='mrow' onclick="tg('d10')"><td>10</td><td class='name'>삼성물산 <span class='arr'>▾</span></td><td>028260</td><td>347,500</td><td class='up'>+7.75%</td><td>3</td><td><b>5.32</b></td></tr>
+<tr id='d10' class='drow'><td colspan='7'><div class='dbox'><a class='naver' href='https://finance.naver.com/item/main.naver?code=028260' target='_blank' rel='noopener'>📊 네이버 금융에서 삼성물산 상세보기 ↗</a><div class='dline'>🔺 <a href='https://finance.naver.com/item/news_read.naver?article_id=0016234222&office_id=001&code=028260&page=1&sm=' target='_blank' rel='noopener'>삼성물산 '홈닉', 청소·세차·펫케어 등 생활서비스 4종 출시</a> <span class='kw'>(같은 내용 외 2건)</span> <span class='kw'>[출시]</span></div></div></td></tr>
 </table>
 </div>
 
 <h2>🔔 실시간 뉴스 알림 (최신순)</h2>
-<div class='alert'><span class='time'>2026.08.05 17:00</span>🔺 <b>고려아연</b> [+2] 사상 최대 반기 실적 고려아연, '106분기 연속 영업흑자' 달성 <span class='kw'>[사상 최대]</span></div>
-<div class='alert'><span class='time'>2026.08.05 16:40</span>🔺 <b>LG화학</b> [+2] '실적 개선' LG화학 김동춘 대표, 1억 규모 자사주 매입…"책임 경... <span class='kw'>[자사주 매입, 실적 개선]</span></div>
-<div class='alert'><span class='time'>2026.08.05 16:32</span>🔺 <b>삼성전기</b> [+2] 삼성전기도 알테오젠도 '1주 상한가'…NXT 시초가 또 논란 <span class='kw'>(같은 내용 외 1건)</span> <span class='kw'>[상한가]</span></div>
-<div class='alert'><span class='time'>2026.08.05 16:09</span>🔺 <b>삼성전자</b> [+2] ‘삼전닉스’ 등 대형주 일제히 강세…코스피 3.7% 급등 <span class='kw'>[급등, 강세]</span></div>
-<div class='alert'><span class='time'>2026.08.05 15:51</span>🔺 <b>카카오뱅크</b> [+2] 카카오뱅크, 상반기 순익 3280억 '역대 최대'…"캐피탈, 자산 1조... <span class='kw'>(같은 내용 외 23건)</span> <span class='kw'>[역대 최대]</span></div>
-<div class='alert'><span class='time'>2026.08.05 15:46</span>🔺 <b>삼양식품</b> [+2] 투썸, 삼양식품 '불닭'과 협업 강화?델리 신제품 2종 출시 <span class='kw'>[신제품, 출시]</span></div>
-<div class='alert'><span class='time'>2026.08.05 15:39</span>🔺 <b>에이피알</b> [+2] 에이피알, 2Q 영업익 1906억?"사상 최대 실적" <span class='kw'>(같은 내용 외 4건)</span> <span class='kw'>[사상 최대]</span></div>
-<div class='alert'><span class='time'>2026.08.05 15:39</span>🔺 <b>SK바이오팜</b> [+2] SK바이오팜, 2분기 영업이익 971억?"역대 최대" <span class='kw'>(같은 내용 외 1건)</span> <span class='kw'>[역대 최대]</span></div>
-<div class='alert'><span class='time'>2026.08.05 15:14</span>🔺 <b>미래에셋증권</b> [+2] "급등락장 심리적 동요 줄여줘"…미래에셋증권, 퇴직연금 로보랩 출시 <span class='kw'>[급등, 출시]</span></div>
-<div class='alert'><span class='time'>2026.08.05 12:43</span>🔺 <b>대우건설</b> [+2] “대우건설, 하반기 실적 개선 이뤄낼 것… 베트남 사업 매출 증가” <span class='kw'>[실적 개선, 매출 증가]</span></div>
-<div class='alert'><span class='time'>2026.08.05 11:53</span>🔺 <b>카카오뱅크</b> [+3] 카뱅, 반기 순익 '역대 최대'…"연내 캐피탈사 출자 승인 추진"(종... <span class='kw'>(같은 내용 외 1건)</span> <span class='kw'>[역대 최대, 승인]</span></div>
-<div class='alert'><span class='time'>2026.08.05 11:48</span>🔺 <b>카카오뱅크</b> [+2] 카카오뱅크, 상반기 순이익 3280억 ‘역대최대 실적’ <span class='kw'>(같은 내용 외 3건)</span> <span class='kw'>[역대최대]</span></div>
-<div class='alert neg'><span class='time'>2026.08.05 11:33</span>🔻 <b>삼성전자</b> [-2] 삼전닉스 성과급, 다시 안갯속…'배임 고발' 경찰 수사 착수 <span class='kw'>[배임]</span></div>
-<div class='alert'><span class='time'>2026.08.05 11:10</span>🔺 <b>삼성증권</b> [+2] 발행어음 초읽기 삼성증권, 2분기 실적도 '사상 최대' <span class='kw'>[사상 최대]</span></div>
-<div class='alert'><span class='time'>2026.08.05 10:59</span>🔺 <b>에이피알</b> [+2] 에이피알, 2분기 영업익 1906억원 역대 최대…전년比 134.5%↑ <span class='kw'>(같은 내용 외 1건)</span> <span class='kw'>[역대 최대]</span></div>
-<div class='alert neg'><span class='time'>2026.08.05 10:53</span>🔻 <b>SK</b> [-2] “성과급 합의가 배임”…경찰, 삼성·SK 대표 고발 사건 수사 착수 <span class='kw'>(같은 내용 외 1건)</span> <span class='kw'>[배임]</span></div>
-<div class='alert'><span class='time'>2026.08.05 10:38</span>🔺 <b>SK바이오팜</b> [+2] 세노바메이트 美 매출 45.6%↑…SK바이오팜, 사상 최대 실적 경신 <span class='kw'>[사상 최대]</span></div>
-<div class='alert'><span class='time'>2026.08.05 10:09</span>🔺 <b>LG전자</b> [+2] LG전자 로봇청소기 ‘로니’ 초기 판매량 역대 최대… 강남·판교·인..... <span class='kw'>[역대 최대]</span></div>
-<div class='alert'><span class='time'>2026.08.05 09:11</span>🔺 <b>삼성전자우</b> [+2] AI 성장 모멘텀 회복에 삼전닉스 강세…삼성전기 13%대 급등 <span class='kw'>[급등, 강세]</span></div>
-<div class='alert'><span class='time'>2026.08.05 08:59</span>🔺 <b>카카오뱅크</b> [+2] 카카오뱅크, 상반기 순이익 3280억원…사상 최대실적 <span class='kw'>[사상 최대]</span></div>
-<div class='alert'><span class='time'>2026.08.05 08:59</span>🔺 <b>대우건설</b> [+2] "대우건설, 2분기 어닝 서프라이즈… 목표가 2만4000원"-다올 <span class='kw'>[어닝 서프라이즈]</span></div>
-<div class='alert'><span class='time'>2026.08.05 05:00</span>🔺 <b>HD현대일렉트릭</b> [+3] HD현대일렉트릭, 북미 수주 '사상 최대'…"AI發 수요 선점 지속" <span class='kw'>[사상 최대, 수주]</span></div>
+<div class='alert'><span class='time'>2026.08.05 17:07</span>🔺 <b>고려아연</b> [+2] <a href='https://finance.naver.com/item/news_read.naver?article_id=0001392730&office_id=082&code=010130&page=1&sm=' target='_blank' rel='noopener'>고려아연, 상반기 영업익 1.3조 ‘사상 최대’</a> <span class='kw'>(같은 내용 외 1건)</span> <span class='kw'>[사상 최대]</span></div>
+<div class='alert neg'><span class='time'>2026.08.05 17:07</span>🔻 <b>LG화학</b> [-2] <a href='https://finance.naver.com/item/news_read.naver?article_id=0003454588&office_id=030&code=051910&page=1&sm=' target='_blank' rel='noopener'>檢, LG화학·한화솔루션 등 7개사 압수수색…담합 의혹</a> <span class='kw'>[압수수색]</span></div>
+<div class='alert'><span class='time'>2026.08.05 16:40</span>🔺 <b>LG화학</b> [+2] <a href='https://finance.naver.com/item/news_read.naver?article_id=0014110541&office_id=003&code=051910&page=1&sm=' target='_blank' rel='noopener'>'실적 개선' LG화학 김동춘 대표, 1억 규모 자사주 매입…"책임 경...</a> <span class='kw'>[자사주 매입, 실적 개선]</span></div>
+<div class='alert'><span class='time'>2026.08.05 16:32</span>🔺 <b>삼성전기</b> [+2] <a href='https://finance.naver.com/item/news_read.naver?article_id=0000946408&office_id=469&code=009150&page=1&sm=' target='_blank' rel='noopener'>삼성전기도 알테오젠도 '1주 상한가'… NXT 시초가 또 논란</a> <span class='kw'>[상한가]</span></div>
+<div class='alert'><span class='time'>2026.08.05 15:51</span>🔺 <b>카카오뱅크</b> [+2] <a href='https://finance.naver.com/item/news_read.naver?article_id=0000049553&office_id=648&code=323410&page=1&sm=' target='_blank' rel='noopener'>카카오뱅크, 상반기 순익 3280억 '역대 최대'…"캐피탈, 자산 1조...</a> <span class='kw'>(같은 내용 외 21건)</span> <span class='kw'>[역대 최대]</span></div>
+<div class='alert'><span class='time'>2026.08.05 15:46</span>🔺 <b>삼양식품</b> [+2] <a href='https://finance.naver.com/item/news_read.naver?article_id=0001047465&office_id=031&code=003230&page=1&sm=' target='_blank' rel='noopener'>투썸, 삼양식품 '불닭'과 협업 강화?델리 신제품 2종 출시</a> <span class='kw'>[신제품, 출시]</span></div>
+<div class='alert'><span class='time'>2026.08.05 15:39</span>🔺 <b>에이피알</b> [+2] <a href='https://finance.naver.com/item/news_read.naver?article_id=0001047450&office_id=031&code=278470&page=1&sm=' target='_blank' rel='noopener'>에이피알, 2Q 영업익 1906억?"사상 최대 실적"</a> <span class='kw'>(같은 내용 외 3건)</span> <span class='kw'>[사상 최대]</span></div>
+<div class='alert'><span class='time'>2026.08.05 15:39</span>🔺 <b>SK바이오팜</b> [+2] <a href='https://finance.naver.com/item/news_read.naver?article_id=0001047449&office_id=031&code=326030&page=1&sm=' target='_blank' rel='noopener'>SK바이오팜, 2분기 영업이익 971억?"역대 최대"</a> <span class='kw'>(같은 내용 외 1건)</span> <span class='kw'>[역대 최대]</span></div>
+<div class='alert'><span class='time'>2026.08.05 15:14</span>🔺 <b>미래에셋증권</b> [+2] <a href='https://finance.naver.com/item/news_read.naver?article_id=0003118507&office_id=119&code=006800&page=1&sm=' target='_blank' rel='noopener'>"급등락장 심리적 동요 줄여줘"…미래에셋증권, 퇴직연금 로보랩 출시</a> <span class='kw'>[급등, 출시]</span></div>
+<div class='alert'><span class='time'>2026.08.05 12:43</span>🔺 <b>대우건설</b> [+2] <a href='https://finance.naver.com/item/news_read.naver?article_id=0000038622&office_id=037&code=047040&page=1&sm=' target='_blank' rel='noopener'>“대우건설, 하반기 실적 개선 이뤄낼 것… 베트남 사업 매출 증가”</a> <span class='kw'>[실적 개선, 매출 증가]</span></div>
+<div class='alert'><span class='time'>2026.08.05 11:53</span>🔺 <b>카카오뱅크</b> [+3] <a href='https://finance.naver.com/item/news_read.naver?article_id=0009098115&office_id=421&code=323410&page=2&sm=' target='_blank' rel='noopener'>카뱅, 반기 순익 '역대 최대'…"연내 캐피탈사 출자 승인 추진"(종합...</a> <span class='kw'>[역대 최대, 승인]</span></div>
+<div class='alert'><span class='time'>2026.08.05 11:48</span>🔺 <b>카카오뱅크</b> [+2] <a href='https://finance.naver.com/item/news_read.naver?article_id=0002809331&office_id=021&code=323410&page=2&sm=' target='_blank' rel='noopener'>카카오뱅크, 상반기 순이익 3280억 ‘역대최대 실적’</a> <span class='kw'>(같은 내용 외 3건)</span> <span class='kw'>[역대최대]</span></div>
+<div class='alert'><span class='time'>2026.08.05 11:10</span>🔺 <b>삼성증권</b> [+2] <a href='https://finance.naver.com/item/news_read.naver?article_id=0000049547&office_id=648&code=016360&page=1&sm=' target='_blank' rel='noopener'>발행어음 초읽기 삼성증권, 2분기 실적도 '사상 최대'</a> <span class='kw'>[사상 최대]</span></div>
+<div class='alert'><span class='time'>2026.08.05 10:59</span>🔺 <b>에이피알</b> [+2] <a href='https://finance.naver.com/item/news_read.naver?article_id=0003454358&office_id=030&code=278470&page=1&sm=' target='_blank' rel='noopener'>에이피알, 2분기 영업익 1906억원 역대 최대…전년比 134.5%↑</a> <span class='kw'>(같은 내용 외 1건)</span> <span class='kw'>[역대 최대]</span></div>
+<div class='alert'><span class='time'>2026.08.05 10:38</span>🔺 <b>SK바이오팜</b> [+2] <a href='https://finance.naver.com/item/news_read.naver?article_id=0004648728&office_id=011&code=326030&page=1&sm=' target='_blank' rel='noopener'>세노바메이트 美 매출 45.6%↑…SK바이오팜, 사상 최대 실적 경신</a> <span class='kw'>[사상 최대]</span></div>
+<div class='alert'><span class='time'>2026.08.05 10:09</span>🔺 <b>LG전자</b> [+2] <a href='https://finance.naver.com/item/news_read.naver?article_id=0001184394&office_id=366&code=066570&page=2&sm=' target='_blank' rel='noopener'>LG전자 로봇청소기 ‘로니’ 초기 판매량 역대 최대… 강남·판교·인....</a> <span class='kw'>[역대 최대]</span></div>
+<div class='alert'><span class='time'>2026.08.05 08:59</span>🔺 <b>카카오뱅크</b> [+2] <a href='https://finance.naver.com/item/news_read.naver?article_id=0005317479&office_id=015&code=323410&page=1&sm=' target='_blank' rel='noopener'>카카오뱅크, 상반기 순이익 3280억원…사상 최대실적</a> <span class='kw'>[사상 최대]</span></div>
+<div class='alert'><span class='time'>2026.08.05 08:59</span>🔺 <b>대우건설</b> [+2] <a href='https://finance.naver.com/item/news_read.naver?article_id=0005395777&office_id=008&code=047040&page=2&sm=' target='_blank' rel='noopener'>"대우건설, 2분기 어닝 서프라이즈… 목표가 2만4000원"-다올</a> <span class='kw'>[어닝 서프라이즈]</span></div>
+<div class='alert'><span class='time'>2026.08.05 05:00</span>🔺 <b>HD현대일렉트릭</b> [+3] <a href='https://finance.naver.com/item/news_read.naver?article_id=0014108599&office_id=003&code=267260&page=1&sm=' target='_blank' rel='noopener'>HD현대일렉트릭, 북미 수주 '사상 최대'…"AI發 수요 선점 지속"</a> <span class='kw'>[사상 최대, 수주]</span></div>
+<script>
+function tg(id) {
+  var e = document.getElementById(id);
+  var open = e.style.display === 'table-row';
+  e.style.display = open ? 'none' : 'table-row';
+  e.dataset.open = open ? '0' : '1';
+}
+setInterval(function () {
+  if (!document.querySelector("tr.drow[data-open='1']")) location.reload();
+}, 60000);
+</script>
 </body>
 </html>
