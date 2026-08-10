@@ -126,6 +126,8 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
   .alert.neg {{ border-left-color: #1565c0; }}
   .kw {{ color: #888; font-size: 12px; }}
   .time {{ color: #999; font-size: 12px; margin-right: 8px; }}
+  .ahead {{ margin-bottom: 4px; font-size: 14px; }}
+  .aline {{ padding: 2px 0 2px 8px; font-size: 13px; }}
   .table-wrap {{ overflow-x: auto; }}
   a {{ color: #1565c0; text-decoration: none; }}
   a:hover {{ text-decoration: underline; }}
@@ -559,42 +561,79 @@ def build_dashboard(picks: list[dict], results: list[dict],
     table_kospi = _ranking_table(analyzer.pick_candidates(kospi), "k")
     table_kosdaq = _ranking_table(analyzer.pick_candidates(kosdaq), "q")
 
+    # 실시간 뉴스 알림: 같은 종목 뉴스는 카드 하나로 묶는다 (최신 종목 순)
+    grouped: dict[str, list[dict]] = {}
+    order: list[str] = []
+    for a in alerts:
+        if a["name"] not in grouped:
+            grouped[a["name"]] = []
+            order.append(a["name"])
+        grouped[a["name"]].append(a)
+
     items = []
-    for a in alerts[:60]:
-        cls = "alert" if a["score"] >= 0 else "alert neg"
-        icon = "🔺" if a["score"] > 0 else ("🔻" if a["score"] < 0 else "▪")
-        extra = (f" <span class='kw'>(같은 내용 외 {a['count'] - 1}건)</span>"
-                 if a.get("count", 1) > 1 else "")
-        src = "<span class='src'>공시</span>" if a.get("disclosure") else ""
+    for name in order[:30]:
+        arts = grouped[name]
+        net = sum(x["score"] for x in arts)
+        cls = "alert" if net >= 0 else "alert neg"
+        lines = [
+            f"<div class='ahead'><b>{name}</b> "
+            f"<span class='kw'>뉴스·공시 {len(arts)}건 · 최신 "
+            f"{arts[0]['datetime']}</span></div>"
+        ]
+        for a in arts[:8]:
+            icon = "🔺" if a["score"] > 0 else ("🔻" if a["score"] < 0 else "▪")
+            extra = (f" <span class='kw'>(같은 내용 외 {a['count'] - 1}건)</span>"
+                     if a.get("count", 1) > 1 else "")
+            src = "<span class='src'>공시</span>" if a.get("disclosure") else ""
+            kw = (f" <span class='kw'>[{', '.join(a['keywords'])}]</span>"
+                  if a["keywords"] else "")
+            lines.append(
+                f"<div class='aline'>{icon} {src}"
+                f"{_link(a['title'], a.get('url', ''))}{extra}{kw}</div>")
+        if len(arts) > 8:
+            lines.append(f"<div class='aline kw'>… 외 {len(arts) - 8}건</div>")
         items.append(
-            f"<div class='{cls}' data-market='{a.get('market', '')}'>"
-            f"<span class='time'>{a['datetime']}</span>"
-            f"{icon} {src}<b>{a['name']}</b> [{a['score']:+d}] "
-            f"{_link(a['title'], a.get('url', ''))}{extra} "
-            f"<span class='kw'>[{', '.join(a['keywords'])}]</span></div>"
-        )
+            f"<div class='{cls}' data-market='{arts[0].get('market', '')}'>"
+            + "".join(lines) + "</div>")
     if not items:
         items.append("<div style='color:#888'>아직 알림 대상 뉴스가 없습니다</div>")
 
-    # 투자유치성 재료 뉴스: 전체 종목에서 수집해 최신순으로
-    mats = []
+    # 투자유치성 재료 뉴스: 종목별로 묶고, 종목 순서는 최신 재료 기준
+    mat_grouped: dict[str, dict] = {}
     for r in results:
-        for mh in r.get("material_hits", []):
-            mats.append((r["name"], r.get("market", ""), mh))
-    mats.sort(key=lambda x: x[2]["datetime"], reverse=True)
+        hits = r.get("material_hits", [])
+        if hits:
+            mat_grouped[r["name"]] = {
+                "market": r.get("market", ""),
+                "hits": sorted(hits, key=lambda m: m["datetime"],
+                               reverse=True),
+            }
+    mat_order = sorted(mat_grouped,
+                       key=lambda n: mat_grouped[n]["hits"][0]["datetime"],
+                       reverse=True)
     mat_items = []
-    for name, market, mh in mats[:60]:
-        m_extra = (f" <span class='kw'>(같은 내용 외 {mh['count'] - 1}건)</span>"
-                   if mh["count"] > 1 else "")
-        b_cls = "badge warn" if mh.get("warn") else "badge"
-        box_cls = "alert neg mat" if mh.get("warn") else "alert mat"
-        src = "<span class='src'>공시</span>" if mh.get("disclosure") else ""
+    for name in mat_order[:30]:
+        info = mat_grouped[name]
+        hits = info["hits"]
+        warn_all = all(m.get("warn") for m in hits)
+        box_cls = "alert neg mat" if warn_all else "alert mat"
+        lines = [
+            f"<div class='ahead'><b>{name}</b> "
+            f"<span class='kw'>재료 {len(hits)}건 · 최신 "
+            f"{hits[0]['datetime']}</span></div>"
+        ]
+        for mh in hits[:6]:
+            m_extra = (f" <span class='kw'>(같은 내용 외 {mh['count'] - 1}건)</span>"
+                       if mh["count"] > 1 else "")
+            b_cls = "badge warn" if mh.get("warn") else "badge"
+            src = "<span class='src'>공시</span>" if mh.get("disclosure") else ""
+            lines.append(
+                f"<div class='aline'><span class='{b_cls}'>{mh['category']}"
+                f"</span>{src}{_link(mh['title'], mh.get('url', ''))}"
+                f"{m_extra}</div>")
         mat_items.append(
-            f"<div class='{box_cls}' data-market='{market}'>"
-            f"<span class='time'>{mh['datetime']}</span>"
-            f"<span class='{b_cls}'>{mh['category']}</span>{src}<b>{name}</b> "
-            f"{_link(mh['title'], mh.get('url', ''))}{m_extra}</div>"
-        )
+            f"<div class='{box_cls}' data-market='{info['market']}'>"
+            + "".join(lines) + "</div>")
     if not mat_items:
         mat_items.append(
             "<div style='color:#888'>오늘 감지된 투자유치성 재료 뉴스가 없습니다</div>")
