@@ -102,7 +102,7 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>코스피 실시간 뉴스 모니터</title>
-<style>
+<!--STYLE--><style>
   body {{ font-family: 'Malgun Gothic', sans-serif; background: #f4f6f9;
          margin: 0; padding: 24px; color: #222; }}
   h1 {{ font-size: 22px; margin: 0 0 4px; }}
@@ -194,9 +194,10 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
     th, td {{ padding: 6px 8px; font-size: 13px; white-space: nowrap; }}
     .alert {{ font-size: 13px; }}
   }}
-</style>
+</style><!--/STYLE-->
 </head>
 <body>
+<!--CONTENT-->
 <h1>📈 코스피·코스닥 실시간 뉴스 모니터 <span style="font-size:14px;color:#888">시가총액 상위 {stock_count}종목</span></h1>
 <div class="meta">마지막 갱신: {updated} · 당일 게재 뉴스만 집계 (누적 {news_total}건, 제목에 종목명 포함 기사만 반영) · 60초마다 자동 새로고침 (뉴스 펼침 중엔 일시정지) · <b>종목명 클릭 → 네이버 종목 페이지</b> · 행 클릭 → 근거 뉴스 펼침</div>
 <div class="warn">⚠️ 뉴스 키워드 기반 자동 분석 결과이며 투자 판단의 근거가 아닙니다. 투자 결정과 결과의 책임은 본인에게 있습니다.</div>
@@ -229,6 +230,7 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
 
 <h2>🔔 실시간 뉴스 알림 (최신순)</h2>
 {alert_items}
+<!--/CONTENT-->
 
 <div id="fsWrap">
 <div id="fsBar"><span><b id="fsTitle"></b><span class="hint">드래그로 이동 · 핀치로 확대 · 타일 터치 시 종목 페이지</span></span>

@@ -2,3 +2,4 @@ __pycache__/
 output/
 state/
 sector_cache.json
+datarepo/
