@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>코스피 실시간 뉴스 모니터</title>
+<!--STYLE--><style>
+  body { font-family: 'Malgun Gothic', sans-serif; background: #f4f6f9;
+         margin: 0; padding: 24px; color: #222; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .meta { color: #667; font-size: 13px; margin-bottom: 16px; }
+  .warn { background: #fff3cd; border: 1px solid #ffe08a; border-radius: 6px;
+           padding: 10px 14px; font-size: 13px; margin-bottom: 20px; }
+  .ai { background: #eef4ff; border: 1px solid #c9dcf8; border-radius: 6px;
+         padding: 10px 14px; font-size: 13px; margin-bottom: 20px; }
+  .ai .prob { font-size: 16px; }
+  h2 { font-size: 17px; margin: 28px 0 10px; }
+  table { border-collapse: collapse; width: 100%; background: #fff;
+           box-shadow: 0 1px 3px rgba(0,0,0,.08); font-size: 14px; }
+  th, td { padding: 8px 12px; border-bottom: 1px solid #e8ecf1; text-align: right; }
+  th { background: #2c3e50; color: #fff; font-weight: 600; }
+  td.name, th.name { text-align: left; }
+  tr:hover td { background: #f0f6ff; }
+  .up { color: #d32f2f; font-weight: 600; }
+  .down { color: #1565c0; font-weight: 600; }
+  .alert { background: #fff; border-left: 4px solid #d32f2f; margin: 6px 0;
+            padding: 8px 12px; font-size: 14px; box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+  .alert.neg { border-left-color: #1565c0; }
+  .kw { color: #888; font-size: 12px; }
+  .time { color: #999; font-size: 12px; margin-right: 8px; }
+  .ahead { margin-bottom: 4px; font-size: 14px; }
+  .aline { padding: 2px 0 2px 8px; font-size: 13px; }
+  .table-wrap { overflow-x: auto; }
+  a { color: #1565c0; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  tr.mrow { cursor: pointer; }
+  .arr { color: #aab; font-size: 11px; }
+  tr.drow { display: none; background: #f8fafc; }
+  tr.drow td { text-align: left; white-space: normal; }
+  .dbox { padding: 4px 6px; }
+  .dline { padding: 3px 0; font-size: 13px; }
+  .naver { display: inline-block; margin-bottom: 6px; font-size: 13px; font-weight: 600; }
+  .badge { display: inline-block; background: #fff3d6; color: #7a5200;
+            border: 1px solid #f0d9a0; border-radius: 4px; padding: 1px 7px;
+            font-size: 11px; font-weight: 600; margin-right: 6px; }
+  .badge.warn { background: #fde8e8; color: #a02020; border-color: #f0b8b8; }
+  .src { display: inline-block; background: #e6f2ea; color: #1e6b3a;
+          border: 1px solid #bfdcc9; border-radius: 4px; padding: 1px 6px;
+          font-size: 11px; font-weight: 600; margin-right: 6px; }
+  .alert.mat { border-left-color: #f9a825; }
+  .mkt { display: inline-block; background: #e8eef7; color: #456;
+          border-radius: 3px; padding: 0 4px; font-size: 10px;
+          font-weight: 700; vertical-align: middle; }
+  .tmap { width: 100%; height: auto; background: #fff; border-radius: 8px;
+           box-shadow: 0 1px 3px rgba(0,0,0,.08); margin-bottom: 12px;
+           display: block; }
+  .tmap a { cursor: pointer; }
+  .tmap a:hover rect { stroke: #2c3e50; stroke-width: 2; }
+  .tmap text { pointer-events: none; font-family: 'Malgun Gothic', sans-serif; }
+  .tmwrap { position: relative; }
+  .fsbtn { position: absolute; top: 8px; right: 8px; z-index: 2;
+            background: rgba(44,62,80,.85); color: #fff; border: none;
+            border-radius: 6px; padding: 6px 12px; font-size: 12px;
+            font-family: inherit; cursor: pointer; }
+  #fsWrap { position: fixed; inset: 0; background: #f4f6f9; z-index: 50;
+             display: none; flex-direction: column; }
+  #fsBar { display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 14px; background: #2c3e50; color: #fff; }
+  #fsBar b { font-size: 15px; }
+  #fsBar .hint { font-size: 11px; opacity: .75; margin-left: 10px; }
+  #fsBar button { background: #fff; color: #2c3e50; border: none;
+                   border-radius: 6px; padding: 7px 16px; font-size: 13px;
+                   font-weight: 700; font-family: inherit; cursor: pointer; }
+  #fsBody { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; }
+  #fsBody svg { width: 95vw; height: auto; display: block; margin: 8px auto; }
+  @media (max-width: 600px) {
+    #fsBody svg { width: 250vw; margin: 4px; }
+  }
+  h3 { font-size: 14px; margin: 14px 0 6px; color: #345; }
+  .session { display: inline-block; background: #e8f0e9; color: #1e6b3a;
+              border: 1px solid #c4dcc9; border-radius: 12px; padding: 2px 12px;
+              font-size: 12px; font-weight: 600; vertical-align: middle; }
+  .tabs { margin: 20px 0 0; display: flex; }
+  .tab { background: #dde5ee; border: none; border-radius: 6px 6px 0 0;
+          padding: 8px 22px; font-size: 14px; font-weight: 600; color: #345;
+          cursor: pointer; margin-right: 4px; font-family: inherit; flex: 0 1 auto; }
+  .tab.on { background: #2c3e50; color: #fff; }
+  @media (max-width: 600px) {
+    .tabs { position: sticky; top: 0; z-index: 5; background: #f4f6f9;
+             padding-top: 4px; }
+    .tab { flex: 1; padding: 9px 4px; font-size: 13px; text-align: center; }
+  }
+  @media (max-width: 600px) {
+    body { padding: 12px; }
+    h1 { font-size: 18px; }
+    th, td { padding: 6px 8px; font-size: 13px; white-space: nowrap; }
+    .alert { font-size: 13px; }
+  }
+</style><!--/STYLE-->
+</head>
+<body>
+<!--CONTENT-->
+<h1>📈 코스피·코스닥 실시간 뉴스 모니터 <span style="font-size:14px;color:#888">시가총액 상위 0종목</span></h1>
+<div class="meta">마지막 갱신: 2026-09-11 19:57:59 · 당일 게재 뉴스만 집계 (누적 0건, 제목에 종목명 포함 기사만 반영) · 60초마다 자동 새로고침 (뉴스 펼침 중엔 일시정지) · <b>종목명 클릭 → 네이버 종목 페이지</b> · 행 클릭 → 근거 뉴스 펼침</div>
+<div class="warn">⚠️ 뉴스 키워드 기반 자동 분석 결과이며 투자 판단의 근거가 아닙니다. 투자 결정과 결과의 책임은 본인에게 있습니다.</div>
+
+
+<div class="tabs">
+<button class="tab on" data-m="all" onclick="showPane('all')">전체</button>
+<button class="tab" data-m="KOSPI" onclick="showPane('KOSPI')">코스피</button>
+<button class="tab" data-m="KOSDAQ" onclick="showPane('KOSDAQ')">코스닥</button>
+</div>
+<div id="pane-all" class="pane">
+
+<h2>🏆 다음 거래일 상승 후보 (전체 통합)</h2>
+<div class='table-wrap'>
+<table>
+<tr><th>순위</th><th class='name'>종목명</th><th>코드</th><th>현재가</th><th>등락률</th><th>뉴스점수</th><th>최종점수</th></tr>
+<tr><td colspan='7' style='text-align:center;color:#888'>아직 호재 점수가 양수인 종목이 없습니다</td></tr>
+</table>
+</div>
+</div>
+<div id="pane-KOSPI" class="pane" style="display:none">
+
+<h2>🏆 다음 거래일 상승 후보 (코스피)</h2>
+<div class='table-wrap'>
+<table>
+<tr><th>순위</th><th class='name'>종목명</th><th>코드</th><th>현재가</th><th>등락률</th><th>뉴스점수</th><th>최종점수</th></tr>
+<tr><td colspan='7' style='text-align:center;color:#888'>아직 호재 점수가 양수인 종목이 없습니다</td></tr>
+</table>
+</div>
+</div>
+<div id="pane-KOSDAQ" class="pane" style="display:none">
+
+<h2>🏆 다음 거래일 상승 후보 (코스닥)</h2>
+<div class='table-wrap'>
+<table>
+<tr><th>순위</th><th class='name'>종목명</th><th>코드</th><th>현재가</th><th>등락률</th><th>뉴스점수</th><th>최종점수</th></tr>
+<tr><td colspan='7' style='text-align:center;color:#888'>아직 호재 점수가 양수인 종목이 없습니다</td></tr>
+</table>
+</div>
+</div>
+
+<h2>💰 투자유치성 재료 뉴스 (당일, 최신순)</h2>
+<div class="meta" style="margin-top:-4px">AI빅테크 · 정부지원 · JV · M&amp;A·지분투자 · 국부펀드 · 대규모 수주 · 바이오 기술수출 · 주주환원 · 국책사업 · 지배구조 · 지수편입 · 디지털자산 · 기술독점 — 13개 재료 카테고리 + <span class="badge warn">경계 재료 ⚠️</span> (보호예수 해제·블록딜·CB발행 등 물량 부담)</div>
+<div style='color:#888'>오늘 감지된 투자유치성 재료 뉴스가 없습니다</div>
+
+<h2>🔔 실시간 뉴스 알림 (최신순)</h2>
+<div style='color:#888'>아직 알림 대상 뉴스가 없습니다</div>
+<!--/CONTENT-->
+
+<div id="fsWrap">
+<div id="fsBar"><span><b id="fsTitle"></b><span class="hint">드래그로 이동 · 핀치로 확대 · 타일 터치 시 종목 페이지</span></span>
+<button onclick="fsClose()">✕ 닫기</button></div>
+<div id="fsBody"></div>
+</div>
+<script>
+function tg(id) {
+  var e = document.getElementById(id);
+  var open = e.style.display === 'table-row';
+  e.style.display = open ? 'none' : 'table-row';
+  e.dataset.open = open ? '0' : '1';
+}
+function showPane(m) {
+  document.querySelectorAll('.pane').forEach(function (p) {
+    p.style.display = (p.id === 'pane-' + m) ? '' : 'none';
+  });
+  document.querySelectorAll('.tab').forEach(function (b) {
+    b.className = (b.dataset.m === m) ? 'tab on' : 'tab';
+  });
+  document.querySelectorAll('div[data-market]').forEach(function (el) {
+    el.style.display = (m === 'all' || el.dataset.market === m) ? '' : 'none';
+  });
+  try { localStorage.setItem('marketTab', m); } catch (e) {}
+}
+function fsOpen(btn) {
+  var svg = btn.closest('.tmwrap').querySelector('svg.tmap');
+  var body = document.getElementById('fsBody');
+  body.innerHTML = '';
+  body.appendChild(svg.cloneNode(true));
+  document.getElementById('fsTitle').textContent = btn.dataset.title || '';
+  document.getElementById('fsWrap').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function fsClose() {
+  document.getElementById('fsWrap').style.display = 'none';
+  document.body.style.overflow = '';
+}
+(function () {
+  var m = 'all';
+  try { m = localStorage.getItem('marketTab') || 'all'; } catch (e) {}
+  if (m !== 'all') showPane(m);
+})();
+setInterval(function () {
+  var fsOpen_ = document.getElementById('fsWrap').style.display === 'flex';
+  if (!fsOpen_ && !document.querySelector("tr.drow[data-open='1']")) {
+    location.reload();
+  }
+}, 60000);
+</script>
+</body>
+</html>
