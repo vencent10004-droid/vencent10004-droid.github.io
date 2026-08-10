@@ -45,8 +45,22 @@ def _parse_number(text: str) -> float:
         return 0.0
 
 
+def is_company(name: str) -> bool:
+    """개별 기업 여부 - ETF·ETN·리츠·인프라펀드·스팩 등은 False"""
+    for prefix in config.NON_COMPANY_PREFIXES:
+        if name.startswith(prefix):
+            return False
+    for keyword in config.NON_COMPANY_KEYWORDS:
+        if keyword in name:
+            return False
+    return True
+
+
 def get_top_stocks(n: int = config.TOP_N_STOCKS, sosok: int = 0) -> list[dict]:
-    """시가총액 상위 n개 종목 (sosok: 0=코스피, 1=코스닥)"""
+    """시가총액 상위 n개 '개별 기업' (sosok: 0=코스피, 1=코스닥)
+
+    ETF 등 비기업 종목은 건너뛰고 다음 순위 기업으로 채운다.
+    """
     stocks = []
     page = 1
     while len(stocks) < n:
@@ -61,6 +75,8 @@ def get_top_stocks(n: int = config.TOP_N_STOCKS, sosok: int = 0) -> list[dict]:
             if not link:
                 continue
             found = True
+            if not is_company(link.get_text(strip=True)):
+                continue
             cols = row.select("td")
             code_match = re.search(r"code=(\d{6})", link.get("href", ""))
             if not code_match:

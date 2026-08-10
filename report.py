@@ -452,10 +452,13 @@ def _rate_color(v: float) -> str:
             else f"rgba(21,101,192,{0.10 - 0.85 * t:.2f})")
 
 
-def _heatmap_grid(cells: list[dict], height: int = 620) -> str:
+def _heatmap_grid(cells: list[dict], height: int = 620,
+                  prefix: str = "t") -> str:
     """업종별 그룹 + 시총 비례 크기의 트리맵 히트맵 (SVG).
 
     cells: [{code, name, rate, cap, sector}]
+    모든 타일에 이름을 넣되 clipPath로 타일 밖은 잘라
+    전체화면 확대 시 작은 종목도 읽을 수 있게 한다.
     """
     W = 1000
     cells = [c for c in cells if c.get("cap", 0) > 0]
@@ -487,28 +490,29 @@ def _heatmap_grid(cells: list[dict], height: int = 620) -> str:
         for c, (x, y, w, h) in zip(g, inner):
             v = c["rate"]
             url = f"https://finance.naver.com/item/main.naver?code={c['code']}"
+            cid = f"{prefix}{c['code']}"
             parts.append(
+                f"<clipPath id='{cid}'><rect x='{x:.1f}' y='{y:.1f}' "
+                f"width='{w:.1f}' height='{h:.1f}'/></clipPath>"
                 f"<a href='{url}' target='_blank' rel='noopener'>"
                 f"<rect x='{x:.1f}' y='{y:.1f}' width='{w:.1f}' height='{h:.1f}' "
                 f"fill='{_rate_color(v)}' stroke='#fff' stroke-width='1'>"
                 f"</rect>"
                 f"<title>{c['name']} ({sec_name}) {v:+.2f}%</title>")
-            # 이름/등락률은 칸이 충분할 때만 (크기에 맞춰 글자 크기 조정)
-            fs = max(8, min(17, w / (len(c["name"]) * 1.1 + 1), h / 2.6))
-            if w > len(c["name"]) * fs * 0.95 and h > fs * 2.4:
+            # 모든 타일에 이름 표기 (타일 크기에 맞춰 글자 크기 조정,
+            # 넘치는 부분은 clipPath로 잘림 → 확대하면 읽을 수 있음)
+            if w > 8 and h > 8:
+                fs = max(4.5, min(17, w / (len(c["name"]) * 1.05 + 0.5),
+                                  h / 2.6))
                 cx, cy = x + w / 2, y + h / 2
                 parts.append(
-                    f"<text x='{cx:.0f}' y='{cy - 1:.0f}' font-size='{fs:.0f}' "
-                    f"text-anchor='middle' fill='#10243a' "
-                    f"font-weight='600'>{c['name']}</text>"
-                    f"<text x='{cx:.0f}' y='{cy + fs:.0f}' "
-                    f"font-size='{fs * 0.85:.0f}' text-anchor='middle' "
-                    f"fill='#10243a' opacity='.8'>{v:+.1f}%</text>")
-            elif w > 30 and h > 14:
-                parts.append(
-                    f"<text x='{x + w / 2:.0f}' y='{y + h / 2 + 3:.0f}' "
-                    f"font-size='8' text-anchor='middle' fill='#10243a'>"
-                    f"{c['name'][:int(w / 8)]}</text>")
+                    f"<g clip-path='url(#{cid})'>"
+                    f"<text x='{cx:.1f}' y='{cy - 0.5:.1f}' "
+                    f"font-size='{fs:.1f}' text-anchor='middle' "
+                    f"fill='#10243a' font-weight='600'>{c['name']}</text>"
+                    f"<text x='{cx:.1f}' y='{cy + fs:.1f}' "
+                    f"font-size='{fs * 0.85:.1f}' text-anchor='middle' "
+                    f"fill='#10243a' opacity='.8'>{v:+.1f}%</text></g>")
             parts.append("</a>")
         # 업종 경계선
         parts.append(
@@ -530,8 +534,10 @@ def _heatmap_sections(heatmap: dict | None) -> dict:
                 f"data-title='{name} 히트맵' onclick='fsOpen(this)'>"
                 f"🔍 크게 보기</button>{svg}</div>")
 
-    kospi = wrap(_heatmap_grid(heatmap["kospi"], height=620), "코스피")
-    kosdaq = wrap(_heatmap_grid(heatmap["kosdaq"], height=420), "코스닥")
+    kospi = wrap(_heatmap_grid(heatmap["kospi"], height=620, prefix="k"),
+                 "코스피")
+    kosdaq = wrap(_heatmap_grid(heatmap["kosdaq"], height=420, prefix="q"),
+                  "코스닥")
     title = f"<h2>🗺️ 실시간 히트맵 {label}</h2>"
     return {
         "heatmap_all": (

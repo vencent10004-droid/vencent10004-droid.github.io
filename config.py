@@ -7,6 +7,18 @@ TOP_N_STOCKS = 200
 # 분석 대상: 코스닥 시가총액 상위 N개 종목 (0이면 코스닥 제외)
 KOSDAQ_TOP_N = 100
 
+# 개별 기업이 아닌 종목 제외 (ETF·ETN·리츠·인프라펀드·스팩)
+# 이름이 아래로 시작하면 제외 (ETF 브랜드)
+NON_COMPANY_PREFIXES = [
+    "KODEX", "TIGER", "RISE", "ACE ", "SOL ", "PLUS ", "KOSEF", "HANARO",
+    "KIWOOM ", "1Q ", "WON ", "TIMEFOLIO", "UNICORN", "마이다스", "에셋플러스",
+    "히어로즈", "BNK ", "FOCUS ", "ITF ", "파워 ", "TREX", "마이티",
+]
+# 이름에 아래가 포함되면 제외
+NON_COMPANY_KEYWORDS = [
+    "ETN", "리츠", "인프라", "펀드", "스팩", "액티브", "(합성)", "(H)",
+]
+
 # 종목당 뉴스 페이지 수 (페이지당 약 10건)
 NEWS_PAGES_PER_STOCK = 2
 
