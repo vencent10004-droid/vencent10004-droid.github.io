@@ -23,6 +23,17 @@
  #fsBody{flex:1;overflow:auto;-webkit-overflow-scrolling:touch}
  #fsBody svg{width:95vw;height:auto;display:block;margin:8px auto}
  @media (max-width:600px){body{padding:12px}#fsBody svg{width:250vw;margin:4px}}
+ #installBtn{display:none;position:fixed;bottom:18px;left:50%;transform:translateX(-50%);
+  background:#2c3e50;color:#fff;border:none;border-radius:26px;padding:13px 26px;
+  font-size:15px;font-weight:700;font-family:inherit;box-shadow:0 4px 14px rgba(0,0,0,.35);
+  z-index:40;cursor:pointer}
+ #installTip{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:45}
+ #installTip>div{position:absolute;left:50%;bottom:0;transform:translateX(-50%);
+  width:100%;max-width:480px;background:#fff;border-radius:16px 16px 0 0;
+  padding:22px 20px 30px;font-size:15px;line-height:1.7}
+ #installTip b{font-size:17px}
+ #installTip .close{float:right;border:none;background:#eee;border-radius:8px;
+  padding:6px 12px;font-family:inherit;cursor:pointer}
 </style>
 </head>
 <body>
@@ -32,6 +43,15 @@
 <div id="fsBar"><span><b id="fsTitle"></b><span class="hint">드래그로 이동 · 핀치로 확대 · 타일 터치 시 종목 페이지</span></span>
 <button onclick="fsClose()">✕ 닫기</button></div>
 <div id="fsBody"></div>
+</div>
+
+<button id="installBtn" onclick="installApp()">📲 앱으로 설치</button>
+<div id="installTip" onclick="this.style.display='none'">
+<div onclick="event.stopPropagation()">
+<button class="close" onclick="document.getElementById('installTip').style.display='none'">닫기</button>
+<b>📲 앱으로 설치하기</b><br><br>
+<span id="tipBody"></span>
+</div>
 </div>
 
 <script>
@@ -102,6 +122,67 @@ document.addEventListener('visibilitychange', function () {
 // PWA 설치 요건 (서비스워커 등록)
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(function (e) {});
+}
+
+// ── 원터치 앱 설치 ──────────────────────────────
+var deferredPrompt = null;
+var ua = navigator.userAgent;
+var isStandalone = window.matchMedia('(display-mode: standalone)').matches
+                   || window.navigator.standalone === true;
+var isKakao = /KAKAOTALK/i.test(ua);
+var isIOS = /iPhone|iPad|iPod/i.test(ua);
+
+window.addEventListener('beforeinstallprompt', function (e) {
+  e.preventDefault();
+  deferredPrompt = e;
+  if (!isStandalone) document.getElementById('installBtn').style.display = 'block';
+});
+
+function showTip(html) {
+  document.getElementById('tipBody').innerHTML = html;
+  document.getElementById('installTip').style.display = 'block';
+}
+
+function installApp() {
+  if (deferredPrompt) {           // 안드로이드 크롬: 시스템 설치창 바로 표시
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function (r) {
+      if (r.outcome === 'accepted') {
+        document.getElementById('installBtn').style.display = 'none';
+      }
+      deferredPrompt = null;
+    });
+  } else if (isIOS) {
+    showTip("사파리 하단의 <b>공유 버튼(⬆)</b>을 누른 뒤<br>" +
+            "<b>'홈 화면에 추가'</b>를 선택하세요.<br>" +
+            "홈 화면에 '코스피 모니터' 아이콘이 생깁니다.");
+  } else {
+    showTip("브라우저 메뉴(⋮)에서 <b>'앱 설치'</b> 또는<br>" +
+            "<b>'홈 화면에 추가'</b>를 선택하세요.");
+  }
+}
+
+// 카카오톡 인앱 브라우저: 설치 불가 → 크롬/사파리로 안내
+if (isKakao && !isStandalone) {
+  var btn = document.getElementById('installBtn');
+  btn.style.display = 'block';
+  if (isIOS) {
+    btn.textContent = '📲 앱 설치는 사파리에서';
+    btn.onclick = function () {
+      showTip("카카오톡 안에서는 설치할 수 없습니다.<br>" +
+              "오른쪽 아래 <b>메뉴(⋮ 또는 ↗)</b> → <b>'Safari로 열기'</b>를 누른 뒤<br>" +
+              "공유(⬆) → '홈 화면에 추가'를 선택하세요.");
+    };
+  } else {
+    btn.textContent = '📲 크롬으로 열고 설치';
+    btn.onclick = function () {
+      location.href = 'intent://vencent10004-droid.github.io/kospi/' +
+                      '#Intent;scheme=https;package=com.android.chrome;end';
+    };
+  }
+} else if (!isStandalone && isIOS) {
+  // 아이폰 사파리: 수동 설치 안내 버튼
+  document.getElementById('installBtn').style.display = 'block';
 }
 </script>
 </body>
