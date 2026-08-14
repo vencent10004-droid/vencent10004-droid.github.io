@@ -21,8 +21,12 @@ _HEADERS = {
 }
 
 
+_session = requests.Session()
+_session.headers.update(_HEADERS)
+
+
 def _basic(code: str) -> dict:
-    r = requests.get(_API.format(code=code), headers=_HEADERS, timeout=8)
+    r = _session.get(_API.format(code=code), timeout=5)
     r.raise_for_status()
     return r.json()
 
@@ -87,10 +91,12 @@ def get_heatmap_rates(stocks: list[dict]) -> tuple[str, dict[str, float]]:
     session, label = get_session()
     rates: dict[str, float] = {}
     if session != "unknown":
-        with ThreadPoolExecutor(max_workers=10) as pool:
+        with ThreadPoolExecutor(max_workers=20) as pool:
             for code, v in pool.map(_over_rate, [s["code"] for s in stocks]):
                 if v is not None:
                     rates[code] = v
+    live = len(rates)
     for s in stocks:  # 조회 실패/미대상 종목은 목록 등락률로 폴백
         rates.setdefault(s["code"], s["change_rate"])
+    print(f"[heatmap] 실시간 시세 {live}/{len(stocks)}종목 ({label})")
     return label, rates

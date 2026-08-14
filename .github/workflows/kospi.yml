@@ -1,10 +1,10 @@
-# 코스피·코스닥 실시간 대시보드 - 클라우드 실시간 루프
-# 뉴스·공시: 5분 주기 수집 / 시세·히트맵: 60초 주기 병렬 갱신 → data 브랜치 푸시
+﻿# 肄붿뒪?셋룹퐫?ㅻ떏 ?ㅼ떆媛???쒕낫??- ?대씪?곕뱶 ?ㅼ떆媛?猷⑦봽
+# ?댁뒪쨌怨듭떆: 5遺?二쇨린 ?섏쭛 / ?쒖꽭쨌?덊듃留? 60珥?二쇨린 蹂묐젹 媛깆떊 ??data 釉뚮옖移??몄떆
 name: kospi-dashboard
 
 on:
   schedule:
-    # UTC 기준. 오전 잡: KST 07:50 시작 → 13:58 종료 / 오후 잡: 13:50 → 19:58
+    # UTC 湲곗?. ?ㅼ쟾 ?? KST 07:50 ?쒖옉 ??13:58 醫낅즺 / ?ㅽ썑 ?? 13:50 ??19:58
     - cron: '50 22 * * 0-4'
     - cron: '50 4 * * 1-5'
   workflow_dispatch:
@@ -14,7 +14,7 @@ on:
 
 concurrency:
   group: kospi
-  cancel-in-progress: true   # 새 잡이 뜨면 이전 루프 교체
+  cancel-in-progress: true   # ???≪씠 ?⑤㈃ ?댁쟾 猷⑦봽 援먯껜
 
 permissions:
   contents: write
@@ -37,7 +37,7 @@ jobs:
 
       - run: pip install -r requirements.txt
 
-      - name: data 브랜치 준비 (대시보드·상태 인계용)
+      - name: data 釉뚮옖移?以鍮?(??쒕낫?쑣룹긽???멸퀎??
         run: |
           REPO="https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
           git clone --depth 1 --branch data "$REPO" datarepo || {
@@ -48,5 +48,5 @@ jobs:
           git config user.name "kospi-bot"
           git config user.email "actions@users.noreply.github.com"
 
-      - name: 실시간 루프 (5분 주기 수집·푸시)
+      - name: ?ㅼ떆媛?猷⑦봽 (5遺?二쇨린 ?섏쭛쨌?몄떆)
         run: python cloud_loop.py

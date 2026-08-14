@@ -94,8 +94,13 @@ def _render_worker(stop: threading.Event):
             try:
                 t0 = time.time()
                 cloud_run.render(ctx)
+                dur = time.time() - t0
+                # 외부에서 병목 진단이 가능하도록 상태 파일 동봉
+                (DATAREPO / "status.txt").write_text(
+                    f"{datetime.now().isoformat(timespec='seconds')} "
+                    f"render={dur:.0f}s\n", encoding="utf-8")
                 push_data()
-                print(f"[cloud] 시세 갱신 ({time.time() - t0:.0f}초)")
+                print(f"[cloud] 시세 갱신 ({dur:.0f}초)")
             except Exception as e:
                 print(f"[cloud] 시세 갱신 오류: {e}")
         stop.wait(60)
