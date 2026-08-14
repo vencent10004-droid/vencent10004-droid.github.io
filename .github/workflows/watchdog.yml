@@ -1,0 +1,33 @@
+# 실시간 루프 감시견: 장 시간 중 루프가 죽어 있으면 15분 안에 자동 재시작
+name: kospi-watchdog
+
+on:
+  schedule:
+    # KST 평일 08:05~19:50, 15분 간격 (UTC 기준)
+    - cron: '5,20,35,50 23 * * 0-4'
+    - cron: '5,20,35,50 0-10 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: 루프 생존 확인 후 필요 시 재시작
+        run: |
+          API="https://api.github.com/repos/${{ github.repository }}/actions/workflows/kospi.yml/runs"
+          AUTH="Authorization: Bearer ${{ github.token }}"
+          running=$(curl -s -H "$AUTH" "$API?status=in_progress&per_page=1" | python3 -c "import sys,json;print(json.load(sys.stdin)['total_count'])")
+          queued=$(curl -s -H "$AUTH" "$API?status=queued&per_page=1" | python3 -c "import sys,json;print(json.load(sys.stdin)['total_count'])")
+          echo "실행 중: $running / 대기 중: $queued"
+          if [ "$running" = "0" ] && [ "$queued" = "0" ]; then
+            echo "루프 죽어 있음 → 재시작 요청"
+            curl -s -X POST -H "$AUTH" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/workflows/kospi.yml/dispatches" \
+              -d '{"ref":"master"}'
+          else
+            echo "루프 정상 - 조치 없음"
+          fi
