@@ -55,7 +55,8 @@
 </div>
 
 <script>
-var DATA_URL = 'https://raw.githubusercontent.com/vencent10004-droid/vencent10004-droid.github.io/data/dashboard.html';
+var REPO = 'vencent10004-droid/vencent10004-droid.github.io';
+var RAW_BASE = 'https://raw.githubusercontent.com/' + REPO + '/';
 
 function tg(id) {
   var e = document.getElementById(id);
@@ -95,26 +96,37 @@ function extract(t, tag) {
   return (a > -1 && b > a) ? t.slice(a + tag.length + 7, b) : '';
 }
 var lastContent = '';
+function apply(t) {
+  var s = extract(t, 'STYLE');
+  var c = extract(t, 'CONTENT');
+  if (!c || c === lastContent) return;
+  lastContent = c;
+  document.getElementById('app').innerHTML = s + c;
+  var m = 'all';
+  try { m = localStorage.getItem('marketTab') || 'all'; } catch (e) {}
+  if (m !== 'all') showPane(m);
+}
 function load() {
-  fetch(DATA_URL + '?t=' + Date.now(), { cache: 'no-store' })
-    .then(function (r) { return r.text(); })
-    .then(function (t) {
-      var s = extract(t, 'STYLE');
-      var c = extract(t, 'CONTENT');
-      if (!c || c === lastContent) return;
-      lastContent = c;
-      document.getElementById('app').innerHTML = s + c;
-      var m = 'all';
-      try { m = localStorage.getItem('marketTab') || 'all'; } catch (e) {}
-      if (m !== 'all') showPane(m);
+  // 최신 커밋 ID로 직접 조회 (브랜치명 주소의 4~5분 캐시 우회)
+  fetch('https://api.github.com/repos/' + REPO + '/branches/data',
+        { cache: 'no-store' })
+    .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+    .then(function (j) { return j.commit.sha; })
+    .catch(function () { return 'data'; })  // API 한도 초과 시 브랜치명 폴백
+    .then(function (ref) {
+      var url = RAW_BASE + ref + '/dashboard.html';
+      if (ref === 'data') url += '?t=' + Date.now();
+      return fetch(url, { cache: 'no-store' });
     })
+    .then(function (r) { return r.text(); })
+    .then(apply)
     .catch(function (e) {});
 }
 load();
 setInterval(function () {
   var fs = document.getElementById('fsWrap').style.display === 'flex';
   if (!fs && !document.querySelector("tr.drow[data-open='1']")) load();
-}, 60000);
+}, 75000);
 // 앱이 백그라운드에서 돌아올 때 즉시 갱신
 document.addEventListener('visibilitychange', function () {
   if (!document.hidden) load();
