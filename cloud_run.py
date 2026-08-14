@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-"""GitHub Actions용 1회 스윕 실행
+"""GitHub Actions용 스윕/렌더 모듈
 
-클라우드에서 10분마다 실행되어 수집→분석→대시보드 생성 후
-kospi/index.html 로 복사한다 (커밋/푸시는 워크플로가 담당).
-당일 수집 상태(state/)는 Actions 캐시로 이어진다.
+- run_sweep(): 뉴스·공시 수집 + 분석 (약 3분, 5분 주기용)
+- render(ctx): 실시간 시세 조회 + 대시보드 생성 (약 15초, 60초 주기용)
+- main(): 1회 실행 (스윕 + 렌더)
 """
 
 import shutil
@@ -25,7 +25,8 @@ except AttributeError:
     pass
 
 
-def main():
+def run_sweep() -> dict:
+    """뉴스·공시 수집과 분석 - 5분 주기 풀 스윕"""
     today = date.today()
     state = realtime.load_state(today)
     first = not state["articles"]
@@ -45,6 +46,13 @@ def main():
     ]
     picks = analyzer.pick_candidates(results)
 
+    total = sum(len(v) for v in state["articles"].values())
+    print(f"[cloud] 스윕 완료 | 누적 뉴스 {total}건 | 후보 {len(picks)}종목")
+    return {"stocks": stocks, "state": state,
+            "results": results, "picks": picks}
+
+
+def _build_heat(stocks: list[dict]) -> dict | None:
     kospi_top = [s for s in stocks if s.get("market") == "KOSPI"][:100]
     kosdaq_top = [s for s in stocks if s.get("market") == "KOSDAQ"][:50]
     try:
@@ -58,19 +66,26 @@ def main():
                      "cap": s.get("market_cap", 0),
                      "sector": sectors.get(s["code"], "기타")} for s in lst]
 
-        heat = {"label": label, "kospi": cells(kospi_top),
+        return {"label": label, "kospi": cells(kospi_top),
                 "kosdaq": cells(kosdaq_top)}
     except Exception as e:
-        print(f"[cloud] 히트맵 조회 실패: {e}")
-        heat = None
+        print(f"[cloud] 히트맵 시세 조회 실패: {e}")
+        return None
 
+
+def render(ctx: dict):
+    """실시간 시세로 히트맵을 갱신해 대시보드 재생성 - 60초 주기"""
+    heat = _build_heat(ctx["stocks"])
     dashboard = report.save_dashboard(
-        picks, results, realtime.collect_alerts(stocks, state), heat)
+        ctx["picks"], ctx["results"],
+        realtime.collect_alerts(ctx["stocks"], ctx["state"]), heat)
     Path("kospi").mkdir(exist_ok=True)
     shutil.copyfile(dashboard, Path("kospi") / "index.html")
 
-    total = sum(len(v) for v in state["articles"].values())
-    print(f"[cloud] 완료 | 누적 뉴스 {total}건 | 후보 {len(picks)}종목")
+
+def main():
+    ctx = run_sweep()
+    render(ctx)
 
 
 if __name__ == "__main__":

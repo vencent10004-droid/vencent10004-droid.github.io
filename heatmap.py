@@ -77,19 +77,20 @@ def _over_rate(code: str) -> tuple[str, float | None]:
 
 
 def get_heatmap_rates(stocks: list[dict]) -> tuple[str, dict[str, float]]:
-    """히트맵용 세션 인지 등락률.
+    """히트맵용 세션 인지 '실시간' 등락률.
 
     반환: (세션 라벨, {종목코드: 등락률})
-    프리/애프터마켓 중에는 NXT 시세를 병렬 조회하고,
-    정규장/마감 시에는 이미 수집된 등락률(change_rate)을 그대로 쓴다.
+    모든 세션에서 모바일 API를 병렬 조회해 현재가 기준 등락률을 쓴다.
+    (프리/애프터마켓은 NXT 시간외, 정규장은 정규장 실시간)
+    조회 실패 종목은 목록 크롤링 시점의 등락률로 폴백.
     """
     session, label = get_session()
     rates: dict[str, float] = {}
-    if session in ("pre", "after"):
+    if session != "unknown":
         with ThreadPoolExecutor(max_workers=10) as pool:
             for code, v in pool.map(_over_rate, [s["code"] for s in stocks]):
                 if v is not None:
                     rates[code] = v
-    for s in stocks:  # 조회 실패/미대상 종목은 정규장 등락률로 폴백
+    for s in stocks:  # 조회 실패/미대상 종목은 목록 등락률로 폴백
         rates.setdefault(s["code"], s["change_rate"])
     return label, rates

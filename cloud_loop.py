@@ -84,19 +84,37 @@ def main():
     restore_state()
     end = _end_time()
     start = time.time()
-    print(f"[cloud] 실시간 루프 시작 (5분 주기, {end.strftime('%H:%M')} 종료 예정)")
+    print(f"[cloud] 실시간 루프 시작 (뉴스 5분·시세 60초 주기, "
+          f"{end.strftime('%H:%M')} 종료 예정)")
+
+    def time_up() -> bool:
+        return (datetime.now().time() >= end
+                or time.time() - start > 5 * 3600 + 40 * 60)
+
+    ctx = None
     while True:
         t0 = time.time()
+        # 풀 스윕 (뉴스·공시 수집 + 분석 + 렌더)
         try:
-            cloud_run.main()
+            ctx = cloud_run.run_sweep()
+            cloud_run.render(ctx)
             push_data()
         except Exception as e:
             print(f"[cloud] 스윕 오류: {e}")
-        if datetime.now().time() >= end:
+        if time_up():
             break
-        if time.time() - start > 5 * 3600 + 40 * 60:  # 6시간 한도 보호
+        # 다음 풀 스윕까지 60초마다 시세만 갱신 (실시간 히트맵)
+        while time.time() - t0 < 295 and not time_up():
+            time.sleep(max(15, 60 - ((time.time() - t0) % 60)))
+            if ctx is None:
+                continue
+            try:
+                cloud_run.render(ctx)
+                push_data()
+            except Exception as e:
+                print(f"[cloud] 시세 갱신 오류: {e}")
+        if time_up():
             break
-        time.sleep(max(20, 300 - (time.time() - t0)))
     print("[cloud] 루프 종료")
 
 
