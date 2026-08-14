@@ -13,6 +13,7 @@ raw.githubusercontent.com 에서 받아와 화면만 갱신한다.
 import shutil
 import subprocess
 import sys
+import threading
 import time
 from datetime import datetime
 from datetime import time as dtime
@@ -80,41 +81,56 @@ def _end_time() -> dtime:
     return now  # 장외 시간에 시작되면 1회만 실행
 
 
+_ctx_lock = threading.Lock()
+_ctx = None
+
+
+def _render_worker(stop: threading.Event):
+    """별도 스레드: 뉴스 수집과 무관하게 60초마다 시세·대시보드 갱신"""
+    while not stop.is_set():
+        with _ctx_lock:
+            ctx = _ctx
+        if ctx is not None:
+            try:
+                t0 = time.time()
+                cloud_run.render(ctx)
+                push_data()
+                print(f"[cloud] 시세 갱신 ({time.time() - t0:.0f}초)")
+            except Exception as e:
+                print(f"[cloud] 시세 갱신 오류: {e}")
+        stop.wait(60)
+
+
 def main():
+    global _ctx
     restore_state()
     end = _end_time()
     start = time.time()
-    print(f"[cloud] 실시간 루프 시작 (뉴스 5분·시세 60초 주기, "
+    print(f"[cloud] 실시간 루프 시작 (뉴스 5분·시세 60초 병렬, "
           f"{end.strftime('%H:%M')} 종료 예정)")
 
     def time_up() -> bool:
         return (datetime.now().time() >= end
                 or time.time() - start > 5 * 3600 + 40 * 60)
 
-    ctx = None
-    while True:
+    stop = threading.Event()
+    worker = threading.Thread(target=_render_worker, args=(stop,), daemon=True)
+    worker.start()
+
+    while not time_up():
         t0 = time.time()
-        # 풀 스윕 (뉴스·공시 수집 + 분석 + 렌더)
         try:
-            ctx = cloud_run.run_sweep()
-            cloud_run.render(ctx)
-            push_data()
+            ctx = cloud_run.run_sweep()  # 뉴스·공시 수집 (~3분)
+            with _ctx_lock:
+                _ctx = ctx
         except Exception as e:
             print(f"[cloud] 스윕 오류: {e}")
-        if time_up():
-            break
-        # 다음 풀 스윕까지 60초마다 시세만 갱신 (실시간 히트맵)
-        while time.time() - t0 < 295 and not time_up():
-            time.sleep(max(15, 60 - ((time.time() - t0) % 60)))
-            if ctx is None:
-                continue
-            try:
-                cloud_run.render(ctx)
-                push_data()
-            except Exception as e:
-                print(f"[cloud] 시세 갱신 오류: {e}")
-        if time_up():
-            break
+        # 다음 스윕까지 대기 (렌더는 스레드가 알아서 돈다)
+        while time.time() - t0 < 300 and not time_up():
+            time.sleep(10)
+
+    stop.set()
+    worker.join(timeout=90)
     print("[cloud] 루프 종료")
 
 
