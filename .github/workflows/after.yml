@@ -33,11 +33,13 @@ jobs:
         with:
           node-version: '22'
 
-      - name: prepare data branch
+      # 주의: 기존 kospi 루프가 data 브랜치를 단일 커밋으로 강제 푸시하므로
+      # 애프터마켓 데이터는 전용 after-data 브랜치를 사용한다 (같은 방식의 단일 커밋 강제 푸시).
+      - name: prepare after-data branch
         run: |
           REPO="https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
-          git clone --depth 1 --branch data "$REPO" datarepo || {
-            mkdir -p datarepo && cd datarepo && git init -q -b data \
+          git clone --depth 1 --branch after-data "$REPO" datarepo || {
+            mkdir -p datarepo && cd datarepo && git init -q -b after-data \
             && git remote add origin "$REPO" && cd ..
           }
           cd datarepo
@@ -51,8 +53,12 @@ jobs:
             if [ -s datarepo/after_data.json ]; then
               cd datarepo
               git add after_data.json
-              git commit -q -m "after-market data $(date '+%F %T')" || true
-              git push -q origin data || git pull -q --rebase origin data && git push -q origin data || true
+              if git rev-parse -q --verify HEAD >/dev/null 2>&1; then
+                git commit -q --amend -m "after-market data" || true
+              else
+                git commit -q -m "after-market data" || true
+              fi
+              git push -q --force origin after-data || true
               cd ..
             fi
             sleep 180
