@@ -89,13 +89,16 @@ async function fetchQuotes(tickers) {
       const j = await fetchJson(`https://polling.finance.naver.com/api/realtime/domestic/stock/${chunk.join(',')}`);
       for (const it of j.datas || []) {
         const over = it.overMarketPriceInfo || {};
+        // 애프터장 체결이 실제로 있는 종목만 인정 (체결 없는 종목은 overPrice에 잔존값이 내려와 가짜 격차가 생김)
+        const vol = num(over.accumulatedTradingVolumeRaw ?? over.accumulatedTradingVolume ?? over.tradeVolume);
+        const traded = vol != null && vol > 0;
         map.set(String(it.itemCode).padStart(6, '0'), {
           regular_close: num(it.closePrice),
           regular_return: num(it.fluctuationsRatio),
-          after_price: num(over.overPrice),
-          after_return: num(over.fluctuationsRatio),
-          after_volume: num(over.accumulatedTradingVolume ?? over.tradeVolume),
-          after_value: koreanMoney(over.accumulatedTradingValue ?? over.tradePrice),
+          after_price: traded ? num(over.overPrice) : null,
+          after_return: traded ? num(over.fluctuationsRatio) : null,
+          after_volume: traded ? vol : null,
+          after_value: traded ? koreanMoney(over.accumulatedTradingValueRaw ?? over.accumulatedTradingValue ?? over.tradePrice) : null,
           market_status: it.marketStatus || '',
           after_status: over.overMarketStatus || '',
         });
