@@ -108,6 +108,17 @@ async function fetchQuotes(tickers) {
   return map;
 }
 
+// 정규장 중에는 애프터 시세가 실시간가와 같아 격차가 0이므로 수집하지 않는다.
+// (직전 거래일 저녁에 수집한 스냅샷을 다음 장 마감까지 유지 → 당일 종가 vs 당일 애프터 비교 보존)
+{
+  const kst = new Date(Date.now() + 9 * 3600 * 1000);
+  const hhmm = kst.getUTCHours() * 100 + kst.getUTCMinutes();
+  if (hhmm >= 840 && hhmm < 1532) {
+    console.log(`Regular session (KST ${hhmm}) — skip, keeping last after-market snapshot.`);
+    process.exit(0);
+  }
+}
+
 const universe = await getUniverse();
 const quotes = await fetchQuotes(universe.map(s => s.ticker));
 console.log(`Quotes fetched: ${quotes.size}/${universe.length}`);

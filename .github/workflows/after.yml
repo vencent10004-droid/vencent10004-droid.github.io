@@ -1,12 +1,13 @@
 # 정규장·애프터마켓 비교 대시보드 - 데이터 갱신 루프
-# 코스피 상위 400 + 코스닥 상위 200 시세를 약 3분 주기로 수집 → data 브랜치의 after_data.json 갱신
+# 장 마감 후 시간외 시세(코스피 400 + 코스닥 200)를 약 3분 주기로 수집 → after-data 브랜치 갱신.
+# 정규장 중에는 격차가 항상 0이므로 수집하지 않는다 (after_data.mjs 내부 가드).
+# → 앱에는 항상 "가장 최근 거래일의 정규장 종가 vs 애프터장" 비교가 유지된다.
 name: after-market-dashboard
 
 on:
   schedule:
-    # UTC 기준. 오전 잡: KST 07:50 시작 / 오후 잡: KST 13:50 시작 → 19:58 종료
-    - cron: '50 22 * * 0-4'
-    - cron: '50 4 * * 1-5'
+    # UTC 기준. KST 15:35 시작 → 19:58 종료 (시간외 단일가 16~18시 + NXT 애프터마켓 ~20시)
+    - cron: '35 6 * * 1-5'
   workflow_dispatch:
   push:
     branches: [master]
@@ -53,12 +54,14 @@ jobs:
             if [ -s datarepo/after_data.json ]; then
               cd datarepo
               git add after_data.json
-              if git rev-parse -q --verify HEAD >/dev/null 2>&1; then
-                git commit -q --amend -m "after-market data" || true
-              else
-                git commit -q -m "after-market data" || true
+              if ! git diff --cached --quiet 2>/dev/null || ! git rev-parse -q --verify HEAD >/dev/null 2>&1; then
+                if git rev-parse -q --verify HEAD >/dev/null 2>&1; then
+                  git commit -q --amend -m "after-market data" || true
+                else
+                  git commit -q -m "after-market data" || true
+                fi
+                git push -q --force origin after-data || true
               fi
-              git push -q --force origin after-data || true
               cd ..
             fi
             sleep 180
