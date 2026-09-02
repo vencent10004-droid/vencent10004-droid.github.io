@@ -1,0 +1,15 @@
+{
+  "name": "정규장·애프터마켓 비교",
+  "short_name": "애프터마켓",
+  "description": "코스피 상위 400 · 코스닥 상위 200 정규장/애프터마켓 등락 비교 대시보드",
+  "start_url": "/after/",
+  "scope": "/after/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#07111f",
+  "theme_color": "#07111f",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

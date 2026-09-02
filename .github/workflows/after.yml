@@ -1,0 +1,59 @@
+# 정규장·애프터마켓 비교 대시보드 - 데이터 갱신 루프
+# 코스피 상위 400 + 코스닥 상위 200 시세를 약 3분 주기로 수집 → data 브랜치의 after_data.json 갱신
+name: after-market-dashboard
+
+on:
+  schedule:
+    # UTC 기준. 오전 잡: KST 07:50 시작 / 오후 잡: KST 13:50 시작 → 19:58 종료
+    - cron: '50 22 * * 0-4'
+    - cron: '50 4 * * 1-5'
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths: ['.github/workflows/after.yml', 'after_data.mjs']
+
+concurrency:
+  group: after-market
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+env:
+  TZ: Asia/Seoul
+
+jobs:
+  data-loop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: prepare data branch
+        run: |
+          REPO="https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
+          git clone --depth 1 --branch data "$REPO" datarepo || {
+            mkdir -p datarepo && cd datarepo && git init -q -b data \
+            && git remote add origin "$REPO" && cd ..
+          }
+          cd datarepo
+          git config user.name "after-market-bot"
+          git config user.email "actions@users.noreply.github.com"
+
+      - name: data loop
+        run: |
+          while [ "$(date +%H%M)" -lt 1958 ] && [ "$SECONDS" -lt 20700 ]; do
+            node after_data.mjs datarepo/after_data.json || true
+            if [ -s datarepo/after_data.json ]; then
+              cd datarepo
+              git add after_data.json
+              git commit -q -m "after-market data $(date '+%F %T')" || true
+              git push -q origin data || git pull -q --rebase origin data && git push -q origin data || true
+              cd ..
+            fi
+            sleep 180
+          done
