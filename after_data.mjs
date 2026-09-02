@@ -129,7 +129,8 @@ console.log(`Quotes fetched: ${quotes.size}/${universe.length}`);
 const rows = [];
 for (const s of universe) {
   const q = quotes.get(s.ticker);
-  if (!q || q.regular_close == null) continue;
+  // 애프터장 체결이 없는 종목(본장만 거래)은 목록에서 제외
+  if (!q || q.regular_close == null || q.after_price == null) continue;
   const gap = q.regular_return != null && q.after_return != null ? q.after_return - q.regular_return : null;
   const vs = q.after_price != null && q.regular_close ? (q.after_price / q.regular_close - 1) * 100 : null;
   rows.push({
