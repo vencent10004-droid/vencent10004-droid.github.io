@@ -3,3 +3,5 @@ output/
 state/
 sector_cache.json
 datarepo/
+
+.universe_cache.json
