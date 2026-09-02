@@ -8,6 +8,9 @@ on:
   schedule:
     # UTC 기준. KST 15:35 시작 → 19:58 종료 (시간외 단일가 16~18시 + NXT 애프터마켓 ~20시)
     - cron: '35 6 * * 1-5'
+    # 백업: 첫 cron이 누락/지연될 경우 대비 (KST 16:20, 17:30 재시작 — 진행 중이던 루프는 취소 후 재개)
+    - cron: '20 7 * * 1-5'
+    - cron: '30 8 * * 1-5'
   workflow_dispatch:
   push:
     branches: [master]
