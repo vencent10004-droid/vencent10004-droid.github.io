@@ -55,21 +55,45 @@ def save_state(state: dict):
     path.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
 
 
+def _fetch_one(job: tuple) -> tuple:
+    """스레드 워커: 한 종목의 뉴스(+공시) 수집"""
+    stock, today, pages = job
+    articles = None
+    notices = []
+    try:
+        articles = crawler.get_stock_news(stock["code"], today, pages=pages)
+    except Exception as e:
+        print(f"  [경고] {stock['name']} 뉴스 수집 실패: {e}")
+    if config.FETCH_DISCLOSURES:
+        try:
+            notices = crawler.get_stock_disclosures(stock["code"], today)
+        except Exception:
+            pass
+    return stock, articles, notices
+
+
 def sweep(stocks: list[dict], state: dict, first: bool) -> list[tuple]:
-    """전 종목 뉴스를 한 바퀴 확인하고 새로 발견한 알림 대상 뉴스 반환"""
+    """전 종목 뉴스를 병렬 수집하고 새로 발견한 알림 대상 뉴스 반환"""
     today = date.fromisoformat(state["date"])
     universe = {s["name"] for s in stocks}
     alerts = []
     alert_sigs = {}  # 같은 내용(종목+키워드 조합)은 대표 1건만 알림
+
+    jobs = []
     for stock in stocks:
-        code = stock["code"]
-        # 처음 보는 종목(예: 새로 추가된 코스닥)은 전체 페이지 수집
+        # 처음 보는 종목(예: 새로 추가된 종목)은 전체 페이지 수집
         pages = (config.NEWS_PAGES_PER_STOCK
-                 if first or code not in state["articles"] else 1)
-        try:
-            articles = crawler.get_stock_news(code, today, pages=pages)
-        except Exception as e:
-            print(f"  [경고] {stock['name']} 뉴스 수집 실패: {e}")
+                 if first or stock["code"] not in state["articles"] else 1)
+        jobs.append((stock, today, pages))
+
+    # 수집(네트워크)은 병렬, 상태 반영은 순차 처리
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=config.FETCH_WORKERS) as pool:
+        fetched = list(pool.map(_fetch_one, jobs))
+
+    for stock, articles, notices in fetched:
+        code = stock["code"]
+        if articles is None:
             continue
         known = {a["title"]: a for a in state["articles"].get(code, [])}
         for a in articles:
@@ -96,25 +120,19 @@ def sweep(stocks: list[dict], state: dict, first: bool) -> list[tuple]:
                 alert_sigs[sig] = alert
                 alerts.append(alert)
 
-        # 당일 공시 수집 - 재료/점수 감지 시 알림
-        if config.FETCH_DISCLOSURES:
-            try:
-                notices = crawler.get_stock_disclosures(code, today)
-            except Exception:
-                notices = []
-            known_n = {d["title"] for d in state["disclosures"].get(code, [])}
-            for d in notices:
-                if d["title"] in known_n:
-                    continue
-                state["disclosures"].setdefault(code, []).append(d)
-                score, keywords = analyzer.score_title(d["title"])
-                cats = [c for c, _t, _w in analyzer.detect_material(d["title"])]
-                if cats or abs(score) >= config.ALERT_THRESHOLD:
-                    alerts.append({"name": stock["name"], "score": score,
-                                   "keywords": keywords, "cats": cats,
-                                   "article": d, "disclosure": True,
-                                   "count": 1})
-        time.sleep(config.REQUEST_DELAY)
+        # 당일 공시 반영 - 재료/점수 감지 시 알림
+        known_n = {d["title"] for d in state["disclosures"].get(code, [])}
+        for d in notices:
+            if d["title"] in known_n:
+                continue
+            state["disclosures"].setdefault(code, []).append(d)
+            score, keywords = analyzer.score_title(d["title"])
+            cats = [c for c, _t, _w in analyzer.detect_material(d["title"])]
+            if cats or abs(score) >= config.ALERT_THRESHOLD:
+                alerts.append({"name": stock["name"], "score": score,
+                               "keywords": keywords, "cats": cats,
+                               "article": d, "disclosure": True,
+                               "count": 1})
     return alerts
 
 
@@ -228,6 +246,13 @@ def collect_alerts(stocks: list[dict], state: dict) -> list[dict]:
     return deduped
 
 
+class _HeatmapDisabled(Exception):
+    """설정으로 히트맵이 꺼져 있음을 나타내는 내부 신호"""
+
+    def __str__(self):
+        return "설정에서 비활성화됨 (config.HEATMAP_ENABLED)"
+
+
 _dl_dashboard = None  # 첫 사용 때 로드 (False = 사용 불가)
 
 
@@ -313,6 +338,8 @@ def main():
             kospi_top = [s for s in stocks if s.get("market") == "KOSPI"][:100]
             kosdaq_top = [s for s in stocks if s.get("market") == "KOSDAQ"][:50]
             try:
+                if not config.HEATMAP_ENABLED:
+                    raise _HeatmapDisabled
                 heat_label, heat_rates = heatmap.get_heatmap_rates(
                     kospi_top + kosdaq_top)
                 sectors = sector.get_sectors(

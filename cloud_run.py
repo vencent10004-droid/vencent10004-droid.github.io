@@ -74,8 +74,8 @@ def _build_heat(stocks: list[dict]) -> dict | None:
 
 
 def render(ctx: dict):
-    """실시간 시세로 히트맵을 갱신해 대시보드 재생성 - 60초 주기"""
-    heat = _build_heat(ctx["stocks"])
+    """대시보드 재생성 - 60초 주기 (히트맵은 설정에 따라)"""
+    heat = _build_heat(ctx["stocks"]) if config.HEATMAP_ENABLED else None
     dashboard = report.save_dashboard(
         ctx["picks"], ctx["results"],
         realtime.collect_alerts(ctx["stocks"], ctx["state"]), heat)
