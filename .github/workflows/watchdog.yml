@@ -1,4 +1,5 @@
-# 실시간 루프 감시견: 장 시간 중 루프가 죽어 있으면 15분 안에 자동 재시작
+# 실시간 루프 감시견 v2: 데이터 신선도 기반
+# status.txt가 15분 이상 오래됐으면 (루프 사망·예약 누락 등 원인 불문) 재시작
 name: kospi-watchdog
 
 on:
@@ -11,23 +12,31 @@ on:
 permissions:
   actions: write
 
+env:
+  TZ: Asia/Seoul
+
 jobs:
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - name: 루프 생존 확인 후 필요 시 재시작
+      - name: check data freshness and restart loop if stale
         run: |
-          API="https://api.github.com/repos/${{ github.repository }}/actions/workflows/kospi.yml/runs"
-          AUTH="Authorization: Bearer ${{ github.token }}"
-          running=$(curl -s -H "$AUTH" "$API?status=in_progress&per_page=1" | python3 -c "import sys,json;print(json.load(sys.stdin)['total_count'])")
-          queued=$(curl -s -H "$AUTH" "$API?status=queued&per_page=1" | python3 -c "import sys,json;print(json.load(sys.stdin)['total_count'])")
-          echo "실행 중: $running / 대기 중: $queued"
-          if [ "$running" = "0" ] && [ "$queued" = "0" ]; then
-            echo "루프 죽어 있음 → 재시작 요청"
-            curl -s -X POST -H "$AUTH" \
+          ts=$(curl -s "https://raw.githubusercontent.com/${{ github.repository }}/data/status.txt?t=$(date +%s)" \
+               | grep -oE '^[0-9T:-]+' | head -1)
+          now=$(date +%s)
+          last=0
+          if [ -n "$ts" ]; then
+            last=$(date -d "$ts" +%s 2>/dev/null || echo 0)
+          fi
+          age=$((now - last))
+          echo "마지막 데이터: $ts (경과 ${age}초)"
+          if [ "$age" -gt 900 ]; then
+            echo "15분 이상 정체 → 루프 재시작"
+            curl -s -X POST \
+              -H "Authorization: Bearer ${{ github.token }}" \
               "https://api.github.com/repos/${{ github.repository }}/actions/workflows/kospi.yml/dispatches" \
               -d '{"ref":"master"}'
           else
-            echo "루프 정상 - 조치 없음"
+            echo "정상 - 조치 없음"
           fi
